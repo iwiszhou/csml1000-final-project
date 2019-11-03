@@ -1,0 +1,201 @@
+{
+  "subtitle": "Obesity Trends in US", 
+  "description": "This dataset includes data on adult's diet, physical activity, and weight status from Behavioral Risk Factor Surveillance System. This data is used for DNPAO's Data, Trends, and Maps database, which provides national and state specific data on obesity, nutrition, physical activity, and breastfeeding.  I was particularly curious on whether socioeconomic status has an impact on obesity.  In my analysis, I compare the obesity rate in each state, and then perform a linear regression on the obesity rate for each educational status and the income bracket.  \n", 
+  "usabilityRating": 0.6470588235294118, 
+  "licenses": [
+    {
+      "name": "CC0-1.0"
+    }
+  ], 
+  "id_no": 18069, 
+  "ownerUser": "spittman1248", 
+  "totalDownloads": 989, 
+  "keywords": [
+    "nutrition", 
+    "health", 
+    "demographics", 
+    "obesity"
+  ], 
+  "datasetSlug": "cdc-data-nutrition-physical-activity-obesity", 
+  "data": [
+    {
+      "totalBytes": 20397291, 
+      "description": null, 
+      "columns": [
+        {
+          "type": "Uuid", 
+          "name": "YearStart", 
+          "description": null
+        }, 
+        {
+          "type": "Uuid", 
+          "name": "YearEnd", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "LocationAbbr", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "LocationDesc", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "Datasource", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "Class", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "Topic", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "Question", 
+          "description": null
+        }, 
+        {
+          "type": null, 
+          "name": "Data_Value_Unit", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "Data_Value_Type", 
+          "description": null
+        }, 
+        {
+          "type": "Uuid", 
+          "name": "Data_Value", 
+          "description": null
+        }, 
+        {
+          "type": "Uuid", 
+          "name": "Data_Value_Alt", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "Data_Value_Footnote_Symbol", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "Data_Value_Footnote", 
+          "description": null
+        }, 
+        {
+          "type": "Uuid", 
+          "name": "Low_Confidence_Limit", 
+          "description": null
+        }, 
+        {
+          "type": "Uuid", 
+          "name": "High_Confidence_Limit", 
+          "description": null
+        }, 
+        {
+          "type": "Uuid", 
+          "name": "Sample_Size", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "Total", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "Age(years)", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "Education", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "Gender", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "Income", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "Race/Ethnicity", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "GeoLocation", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "ClassID", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "TopicID", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "QuestionID", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "DataValueTypeID", 
+          "description": null
+        }, 
+        {
+          "type": "Uuid", 
+          "name": "LocationID", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "StratificationCategory1", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "Stratification1", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "StratificationCategoryId1", 
+          "description": null
+        }, 
+        {
+          "type": "String", 
+          "name": "StratificationID1", 
+          "description": null
+        }
+      ], 
+      "name": "Nutrition__Physical_Activity__and_Obesity_-_Behavioral_Risk_Factor_Surveillance_System.csv"
+    }
+  ], 
+  "id": "spittman1248/cdc-data-nutrition-physical-activity-obesity", 
+  "datasetId": 18069, 
+  "collaborators": [], 
+  "title": "CDC Data: Nutrition, Physical Activity, & Obesity", 
+  "totalViews": 5706, 
+  "totalVotes": 30, 
+  "isPrivate": false
+}
