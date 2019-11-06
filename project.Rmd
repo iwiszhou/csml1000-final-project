@@ -1,28 +1,26 @@
 ---
 title: "project"
 output: html_document
+bibliography:  reference.bib
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Problem Statement
+This dataset includes data on adult's diet, physical activity, and weight status from Behavioral Risk Factor Surveillance System. This data is used for DNPAO's Data, Trends, and Maps database, which provides national and state specific data on obesity, nutrition, physical activity, and breastfeeding.  The dataset provider is particularly curious on whether socioeconomic status has an impact on obesity.  In her analysis, she compares the obesity rate in each state, and then perform a linear regression on the obesity rate for each educational status and the income bracket. [@Suzanne] 
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+## Approach
+**1.  Import the source file**
+```{r step1, echo=FALSE, include=FALSE}
+library(tidyverse)
+library(dplyr)
+df <- read_csv("Nutrition__Physical_Activity__and_Obesity_-_Behavioral_Risk_Factor_Surveillance_System.csv")
+df %>% 
+  print(n = 10, width = Inf)
+problems(df)
+write_csv(df, "nutrition.csv")
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
