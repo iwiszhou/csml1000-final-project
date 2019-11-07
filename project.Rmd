@@ -1,7 +1,9 @@
 ---
 title: "project"
-output: html_document
-bibliography:  reference.bib
+output:
+  pdf_document: default
+  html_document: default
+bibliography: reference.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -23,4 +25,46 @@ df %>%
 problems(df)
 write_csv(df, "nutrition.csv")
 ```
+**1. Clean dataset **
 
+```{r dataStructure, echo=FALSE, results='asis' }
+  library(knitr)
+  dd <- tibble(
+    colName = colnames(df),
+    action = c("change to int",
+               "change to int",
+               "pass",
+               "correlate with LocationAbbr",
+               "may not relate to the problem",
+               "correlate with Topic",
+               "remove, because corelate to Class",
+               "remove, correlate with QuestionID",
+               "remove, contain only NA",
+               "remove, contains only value 'Value'",
+               "pass",
+               "remove, corelate to Data_Value",
+               "remove, correlate to Data_Value_Footnote",
+               "update NA -> ''",
+               "pass",
+               "pass",
+               "pass",
+               "update NA -> 'Unknown'",
+               "update colname -> Age, update NA-> 'Unknown'",
+               "update NA -> 'Unknown",
+               "update NA -> 'Unknown",
+               "update NA -> 'Unknown'",
+               "update colname -> 'Race' and update NA -> 'Unknown'",
+               "spread to col:  latitude and longitude",
+               "remove, correlate with col: TopicID",
+               "pass",
+               "pass",
+               "remove, contain only one value 'VALUE'",
+               "remove, corelated with column GeoLocation",
+               "remove, corelation with StratificationCategoryId1",
+               "remove, corelation with Income, Race/Ethnicity, Gender, Education, Age, Total, sub catigory under spread StratificationCategoryId1",
+               "spread this column to OVR,GEN,EDU,AGEYR,INC,RACE",
+               "remove, combined col: StratificationCategoryId1 + Stratification1"
+    )
+  )
+  kable(dd, caption="column list")
+```
