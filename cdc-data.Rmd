@@ -372,7 +372,7 @@ q1 %>% ggplot(aes(x=StratificationCategory1, y=Data_Value, color = Stratificatio
 
 This graph tells Race/Ethnicity category has wider range than others. Let's take look each category.
 
-Category - Age (years)
+###### Category - Age (years)
 
 ```{r message=FALSE, warning=FALSE}
 q1_age <- q1 %>% filter(StratificationCategory1 == "Age (years)");
@@ -381,12 +381,12 @@ q1_age %>% ggplot(aes(x=Stratification1, y=Data_Value ) ) +
   facet_wrap(~ YearStart) +
   geom_smooth(method = lm, se = FALSE) + 
   theme(axis.text.x = element_text(angle=45)) +
-  labs(title="Category Age vs Data_Value", x="Stratification1", y="Data_Value")
+  labs(title="Category Age vs Obesity", x="Age", y="Obesity percentage")
 ```
 
-It is clear Data_Value increases when age increase. Peek is around 35-44 and 45-54. And it drops after.
+It is clear obesity percentage increases when age increase. Peek is around 35-44 and 45-54. And it drops after.
 
-Category - Education
+###### Category - Education
 
 ```{r message=FALSE, warning=FALSE}
 q1_education <- q1 %>% filter(StratificationCategory1 == "Education");
@@ -395,7 +395,51 @@ q1_education %>% ggplot(aes(x=Stratification1, y=Data_Value ) ) +
   facet_wrap(~ YearStart) +
   geom_smooth(method = lm, se = FALSE) + 
   theme(axis.text.x = element_text(angle=45)) +
-  labs(title="Category Education vs Data_Value", x="Stratification1", y="Data_Value")
+  labs(title="Category Education vs Obesity percentage", x="Education", y="Obesity percentage")
 ```
 
-This graph tell us lower educaiton level seems has higher Data_Value.
+This graph tell us lower educaiton level seems has higher percentage of obesity 
+
+###### Category - Income
+
+```{r message=FALSE, warning=FALSE}
+q1_income <- q1 %>% filter(StratificationCategory1 == "Income");
+q1_income %>% ggplot(aes(x=Stratification1, y=Data_Value ) ) + 
+  geom_point() + 
+  facet_wrap(~ YearStart) +
+  geom_smooth(method = lm, se = FALSE) + 
+  theme(axis.text.x = element_text(angle=45)) +
+  labs(title="Category Income vs Obesity percentage", x="Income", y="Obesity percentage")
+```
+
+People has lower income has higher percentage of obesity 
+
+###### Category - Race/Ethnicity
+
+```{r message=FALSE, warning=FALSE}
+q1_race <- q1 %>% filter(StratificationCategory1 == "Race/Ethnicity");
+q1_race %>% ggplot(aes(x=Stratification1, y=Data_Value ) ) + 
+  geom_point() + 
+  facet_wrap(~ YearStart) +
+  geom_smooth(method = lm, se = FALSE) + 
+  theme(axis.text.x = element_text(angle=45)) +
+  labs(title="Category Race/Ethnicity vs Obesity percentage", x="Race/Ethnicity", y="Obesity percentage")
+```
+
+This graph tell us Asian people has lowest percentage of obesity 
+
+###### Category - Gender
+
+```{r message=FALSE, warning=FALSE}
+q1_gender <- q1 %>% filter(StratificationCategory1 == "Gender");
+q1_gender %>% ggplot(aes(x=Stratification1, y=Data_Value ) ) + 
+  geom_point() + 
+  facet_wrap(~ YearStart) +
+  geom_smooth(method = lm, se = FALSE) + 
+  theme(axis.text.x = element_text(angle=45)) +
+  labs(title="Category Gender vs Obesity percentage", x="Gender", y="Obesity percentage")
+```
+
+For this graph, we only can see female has wider range than male.
+
+For "Percent of adults aged 18 years and older who have obesity" question, we can see middle aged people, who has lower education level and income less than $15,000, they will have higher chances to have a obesity health problem.
