@@ -21,7 +21,8 @@ library(tidyverse);  # data manipulation
 library(cluster);    # clustering algorithms
 library(clusterSim);
 library(factoextra);
-library(fpc)
+library(fpc);
+library(flexclust);
 ```
 
 # OVERVIEW
@@ -506,11 +507,95 @@ For this graph, we only can see male has wider range than femail. And male's mea
 
 #### For "Percent of adults aged 18 years and older who have obesity" question, categories Gender, Education, Income, Age and Race/Ethnicity, which has significant impact on obesity. For example, people around 55-64, whose is male, who has lower education level and income less than $15,000, they will have higher chances to have a obesity health problem.
 
+###### How about the obesity rate vs location(each state)
+
+Let's group the dataset by year, location and categories
+
+```{r message=FALSE, warning=FALSE}
+q1_groupby <- q1 %>% group_by(YearStart,LocationAbbr) %>% summarise(total = sum(Data_Value) / n() )
+```
+
+```{r message=FALSE, warning=FALSE}
+q1_groupby %>% ggplot(aes(x=YearStart, y=total, color = LocationAbbr)) + 
+  geom_line() + 
+  facet_wrap(~LocationAbbr) +
+  labs(title="YearStart vs Data_Value", x="YearStart", y="Total Rate")
+```
+
+Corssing all state, we can find a kind of linear pattern. Rate is increasing year by year.
 
 ## Unsupervised Learning - build a clustering model
-TODO
 
-## Supervised Learning - build a clustering model
+### Construct Data
+
+#### Let's build a simple clustering model. We need to convert factor to numeric
+
+```{r message=FALSE, warning=FALSE}
+q1_model_df <- q1;
+q1_model_df$Sample_Size <- NULL;
+q1_model_df$LocationAbbr <- as.integer(q1_model_df$LocationAbbr);
+q1_model_df$Class <- as.integer(q1_model_df$Class);
+q1_model_df$QuestionID <- as.integer(q1_model_df$QuestionID);
+q1_model_df$Stratification1 <- as.integer(q1_model_df$Stratification1);
+q1_model_df$StratificationCategory1 <- as.integer(q1_model_df$StratificationCategory1)
+```
+
+#### Scaling data
+
+```{r message=FALSE, warning=FALSE}
+q1_model_df$YearStart <- scale(q1_model_df$YearStart);
+q1_model_df$Data_Value <- scale(q1_model_df$Data_Value);
+q1_model_df$Stratification1 <- scale(q1_model_df$Stratification1);
+str(q1_model_df)
+```
+
+### Modeling
+
+#### Determine number of clusters
+
+Run tests on various numbers of clusters to look for an "elbow" which will suggest how many useful clusters we can hope to get from this data.
+
+```{r message=FALSE, warning=FALSE}
+wss <- (nrow(q1_model_df)-1)*sum(apply(q1_model_df,2,var))
+for (i in 2:15) wss[i] <- sum(kmeans(q1_model_df,
+   centers=i)$withinss)
+plot(1:15, wss, type="b", xlab="Number of Clusters",
+  ylab="Within groups sum of squares") 
+ 
+```
+
+In terms of how many clusters we should choose, these graphs could be suggesting anywhere from 3 to 4, depending on how we read them.
+
+Here's one with 3 clusters:
+
+```{r message=FALSE, warning=FALSE}
+# K-Means Cluster Analysis
+fit <- kmeans(q1_model_df, 3) # 3 cluster solution
+```
+
+```{r message=FALSE, warning=FALSE}
+# Optional Step - We need to export a predictable model - so that, we will use library flexclust
+q1_model_df_shiny_model_1 = kcca(q1_model_df, k=3, kccaFamily("kmeans"));
+saveRDS(q1_model_df_shiny_model_1, file = "./cluster-model-1.rda");
+image(q1_model_df_shiny_model_1);
+
+# get cluster means
+aggregate(q1_model_df,by=list(fit$cluster),FUN=mean);
+# append cluster assignment
+q1_model_df <- data.frame(q1_model_df, fit$cluster)
+## Assess Model
+```
+
+Let's take a look how many dataset in each clusters. And what is performance of this model.
+
+```{r message=FALSE, warning=FALSE}
+q1_model_df %>% group_by(fit.cluster) %>% summarise(n());
+fit
+```
+
+This model has a high cluster mean 86% (between_SS / total_SS). 86% is a measure of the total variance in your data set that is explained by the clustering.
+
+## Supervised Learning - build a regression/random forse model
 TODO
 
 ## Conclusion
