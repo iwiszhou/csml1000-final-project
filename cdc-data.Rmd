@@ -504,4 +504,14 @@ q1_gender %>% ggplot(aes(x=Stratification1, y=Data_Value, color=Stratification1 
 
 For this graph, we only can see male has wider range than femail. And male's mean value is higher than female.
 
-#### For "Percent of adults aged 18 years and older who have obesity" question, categories Gender, Education, Income, Age and Race/Ethnicity, which has significant impact on obesity. For example, people around 55-64, who has lower education level and income less than $15,000, they will have higher chances to have a obesity health problem.
+#### For "Percent of adults aged 18 years and older who have obesity" question, categories Gender, Education, Income, Age and Race/Ethnicity, which has significant impact on obesity. For example, people around 55-64, whose is male, who has lower education level and income less than $15,000, they will have higher chances to have a obesity health problem.
+
+
+## Unsupervised Learning - build a clustering model
+TODO
+
+## Supervised Learning - build a clustering model
+TODO
+
+## Conclusion
+TODO
