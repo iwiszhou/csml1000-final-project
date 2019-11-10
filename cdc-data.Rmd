@@ -526,7 +526,7 @@ Corssing all state, we can find a kind of linear pattern. Rate is increasing yea
 
 ## Unsupervised Learning - build a clustering model
 
-### Construct Data
+### Build Kmeams Model #1
 
 #### Let's build a simple clustering model. We need to convert factor to numeric
 
@@ -548,8 +548,6 @@ q1_model_df$Data_Value <- scale(q1_model_df$Data_Value);
 q1_model_df$Stratification1 <- scale(q1_model_df$Stratification1);
 str(q1_model_df)
 ```
-
-### Modeling
 
 #### Determine number of clusters
 
@@ -594,6 +592,58 @@ fit
 ```
 
 This model has a high cluster mean 86% (between_SS / total_SS). 86% is a measure of the total variance in your data set that is explained by the clustering.
+
+### Build Hierarchical Model #2
+
+#### Let's build a simple clustering model. We need to convert factor to numeric
+
+```{r message=FALSE, warning=FALSE}
+set.seed(786);
+q1_h_model_df <- q1;
+q1_h_model_df$Sample_Size <- NULL;
+q1_h_model_df$LocationAbbr <- as.integer(q1_h_model_df$LocationAbbr);
+q1_h_model_df$Class <- as.integer(q1_h_model_df$Class);
+q1_h_model_df$QuestionID <- as.integer(q1_h_model_df$QuestionID);
+q1_h_model_df$Stratification1 <- as.integer(q1_h_model_df$Stratification1);
+q1_h_model_df$StratificationCategory1 <- as.integer(q1_h_model_df$StratificationCategory1)
+```
+
+#### Scaling data
+
+Use R's scale() function to scale all your column values instead of one by one.
+
+```{r message=FALSE, warning=FALSE}
+q1_h_model_df <- as.data.frame(scale(q1_h_model_df))
+```
+
+#### Calculate euclidean distance
+
+```{r message=FALSE, warning=FALSE}
+q1_h_model_df_dist <- dist(q1_h_model_df, method = 'euclidean')
+```
+
+##### Build hierarchical model
+
+```{r message=FALSE, warning=FALSE}
+hclust_avg <- hclust(q1_h_model_df_dist, method = 'average');
+plot(hclust_avg);
+abline(h = 3.8, col = 'red')
+```
+
+
+As you can see in the dengrogram if we cut the tree at 4 (h=4), we get 3 clusters. 
+However, we can see there is 2 big clusters just right under around h=3.8, if cut the tree at 3.8, we would get 4 clusters. And it also match the "elbow" chart.
+In the 1st model, we choose k=3. In this dengrogram, let's cut the tree at 3.8, so that, we will get 4 clusters.
+
+```{r message=FALSE, warning=FALSE}
+cut_avg <- cutree(hclust_avg, h = 3.8);
+plot(hclust_avg);
+rect.hclust(hclust_avg , k = 4, border = 2:6);
+abline(h = 3.8, col = 'red')
+
+```
+
+However, we can see the 2nd cluster(between green and blue) one, which is too small. It might make sence we should only use k=3 rather than 4.
 
 ## Supervised Learning - build a regression/random forse model
 TODO
