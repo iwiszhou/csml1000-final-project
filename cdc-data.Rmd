@@ -421,7 +421,13 @@ q1_age %>% ggplot(aes(x=Stratification1, y=Data_Value, color=Stratification1) ) 
   labs(title="Category Age vs Obesity", x="Age", y="Obesity percentage")
 ```
 
-It is clear obesity rate increases when age increase. Peek is around 45-54. And it drops after.
+The graph is a little bit hard to find out which one has highest rate. Let's take a look the mean values.
+
+```{r message=FALSE, warning=FALSE}
+q1_age %>% group_by(Stratification1) %>% dplyr::summarize(Mean = mean(Data_Value, na.rm=TRUE))
+```
+
+It is clear obesity rate increases when age increase. Peek is around 55 - 64. And it drops after.
 
 ###### Category - Education
 
@@ -437,7 +443,13 @@ q1_education %>% ggplot(aes(x=Stratification1, y=Data_Value,color=Stratification
   labs(title="Category Education vs Obesity percentage", x="Education", y="Obesity percentage")
 ```
 
-This graph tell us lower educaiton level(High school graduate & Less than high school) seems has higher obesity rate.
+The graph is a little bit hard to find out which one has highest rate. Let's take a look the mean values.
+
+```{r message=FALSE, warning=FALSE}
+q1_education %>% group_by(Stratification1) %>% dplyr::summarize(Mean = mean(Data_Value, na.rm=TRUE))
+```
+
+This graph tell us lower educaiton level(High school graduate & Less than high school) seems has higher obesity rate. According to the mean value, we can say peole has Less than high school education has highest obesity rate.
 
 ###### Category - Income
 
@@ -453,7 +465,14 @@ q1_income %>% ggplot(aes(x=Stratification1, y=Data_Value, color=Stratification1)
   labs(title="Category Income vs Obesity percentage", x="Income", y="Obesity percentage")
 ```
 
-People has income between $75,000 or greater, which has bigger range than others. And the mean value is increasing year by year.
+The graph is a little bit hard to find out which one has highest rate. Let's take a look the mean values.
+
+```{r message=FALSE, warning=FALSE}
+q1_income %>% group_by(Stratification1) %>% dplyr::summarize(Mean = mean(Data_Value, na.rm=TRUE))
+```
+
+Mean value tells us two boundaries case ($75,000+ and $15,000-) has lowest mean obesity rate. 
+However, people has income between $75,000 or greater, which has bigger range than others. And the mean value is increasing year by year.
 
 ###### Category - Race/Ethnicity
 
@@ -485,4 +504,4 @@ q1_gender %>% ggplot(aes(x=Stratification1, y=Data_Value, color=Stratification1 
 
 For this graph, we only can see male has wider range than femail. And male's mean value is higher than female.
 
-#### For "Percent of adults aged 18 years and older who have obesity" question, categories Gender, Education, Income, Age and Race/Ethnicity, which has significant impact on obesity. For example, middle aged people(35-44), who has lower education level and income less than $15,000, they will have higher chances to have a obesity health problem.
+#### For "Percent of adults aged 18 years and older who have obesity" question, categories Gender, Education, Income, Age and Race/Ethnicity, which has significant impact on obesity. For example, people around 55-64, who has lower education level and income less than $15,000, they will have higher chances to have a obesity health problem.
