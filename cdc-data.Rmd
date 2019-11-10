@@ -1,0 +1,401 @@
+---
+title: Clustering CDC Data - Nutrition, Physical Activity, & Obesity using Unsupervised
+  Learning
+output:
+  # pdf_document: default - coloured graphs take way too long to render in PDF form.
+  html_document: default
+---
+
+# CSML1000 Project #2, by Group 8
+Tamer Hanna <tamerh@my.yorku.ca>
+Pete Gray <ptgray@my.yorku.ca>
+Xiaohai Lu <yu271637@my.yorku.ca>
+Haofeng Zhou <zhf85@my.yorku.ca>
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr);
+library(ggplot2);
+library(knitr);
+library(validate);
+library(tidyverse);  # data manipulation
+library(cluster);    # clustering algorithms
+library(clusterSim);
+library(factoextra);
+library(fpc)
+```
+
+# OVERVIEW
+
+Obesity is a big problem in North American society, and contributes to increased rates of diabetes, heart disease, stroke, depression, suicide, disability, death, and many other serious problems that I'll look up later.
+
+Using this dataset, we can identify groups at highest risk based on age, gender, race, education, income, etc. Using unsupervised learning, we can look for unexpected combinations of features that lead to an increased rate of obesity. Using decision trees, we can divine the most critical factors correlated with high rates of obesity. We can do this in general, or within those clusters. And, lastly, and most importantly, for any given sample, we can determine the impact of changing different factors on a given group's predicted obesity rate.
+
+## Collect Initial Data
+
+Load the data from the local filesystem:
+
+```{r message=FALSE, warning=FALSE}
+#load data
+df <- read_csv("dataset.csv");
+df_origin <- df
+```
+
+Output a quick and dirty summary of the dataset, to ensure that we haven't loaded something scrambled, or the wrong thing:
+
+```{r message=FALSE, warning=FALSE}
+str(df);
+head(df);
+```
+
+## Describe Data
+
+The data describe 9 different questions and each one has a corresponding precentage
+
+1 Percent of adults aged 18 years and older who have an overweight classification                                                                                           
+2 Percent of adults aged 18 years and older who have obesity                                                                                                                
+3 Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic activity (or a…
+4 Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic physical activ…
+5 Percent of adults who achieve at least 300 minutes a week of moderate-intensity aerobic physical activity or 150 minutes a week of vigorous-intensity aerobic activity (or …
+6 Percent of adults who engage in muscle-strengthening activities on 2 or more days a week                                                                                    
+7 Percent of adults who engage in no leisure-time physical activity                                                                                                           
+8 Percent of adults who report consuming fruit less than one time daily                                                                                                       
+9 Percent of adults who report consuming vegetables less than one time daily
+
+For each of there questions, there are 6 different categories
+
+1 Age (years)            
+2 Education              
+3 Gender                 
+4 Income                 
+5 Race/Ethnicity         
+6 Total
+
+For each of there categories, which has different values
+
+Age (years)	6	
+  - 18 - 24
+  - 25 - 34
+  - 35 - 44
+  - 45 - 54
+  - 55 - 64
+  - 65 or older
+Education	4	
+  - Less than high school
+  - High school graduate
+  - Some college or technical school
+  - College graduate
+Gender	2
+  - Male
+  - Female			
+Income	7
+  - Less than $15,000
+  - $15,000 - $24,999
+  - $25,000 - $34,999
+  - $35,000 - $49,999
+  - $50,000 - $74,999
+  - $75,000 or greater
+  - Data not reported
+Race/Ethnicity	8		
+  - 2 or more races
+  - American Indian/Alaska Native			
+  - Asian			
+  - Hawaiian/Pacific Islander			
+  - Hispanic			
+  - Non-Hispanic Black			
+  - Non-Hispanic White			
+  - Other
+Total	1	
+  - Total
+
+## Data cleaning
+
+At first glance, some columns are just described another. Let's look at one by one from left to right. And select the necessary columns.
+Firs of all, converting all character to factor
+
+```{r message=FALSE, warning=FALSE}
+df$LocationAbbr <- as.factor(df$LocationAbbr)
+df$LocationDesc <- as.factor(df$LocationDesc)
+df$Datasource <- as.factor(df$Datasource)
+df$Class <- as.factor(df$Class)
+df$Topic <- as.factor(df$Topic)
+df$Data_Value_Unit <- as.factor(df$Data_Value_Unit)
+df$Data_Value_Type <- as.factor(df$Data_Value_Type)
+df$Data_Value_Footnote_Symbol <- as.factor(df$Data_Value_Footnote_Symbol)
+df$Data_Value_Footnote <- as.factor(df$Data_Value_Footnote)
+df$Total <- as.factor(df$Total)
+df$Education <- as.factor(df$Education)
+df$Gender <- as.factor(df$Gender)
+df$Income <- as.factor(df$Income)
+df$ClassID <- as.factor(df$ClassID)
+df$TopicID <- as.factor(df$TopicID)
+df$QuestionID <- as.factor(df$QuestionID)
+df$DataValueTypeID <- as.factor(df$DataValueTypeID)
+df$LocationID <- as.factor(df$LocationID)
+df$DataValueTypeID <- as.factor(df$DataValueTypeID)
+df$StratificationCategory1 <- as.factor(df$StratificationCategory1)
+df$Stratification1 <- as.factor(df$Stratification1)
+df$StratificationCategoryId1 <- as.factor(df$StratificationCategoryId1)
+df$StratificationID1 <- as.factor(df$StratificationID1)
+```
+
+Next, walk through each column.
+
+### YearStart vs YearEnd
+
+Group by YearStart and YearEnd, if they are same, we can keep one and remove the other.
+
+```{r message=FALSE, warning=FALSE}
+df %>% group_by(YearStart,YearEnd) %>% summarise(count=n())
+```
+
+We can see YearStart and YearEnd are always the same. let's remove YearEnd.
+And we also found each year contains different size of data. 2015 > 2013 > 2011 > 2016 > 2014 > 2012
+
+```{r message=FALSE, warning=FALSE}
+df$YearEnd <- NULL
+```
+
+### Datasource
+
+Datasource has only one level. We can remove it as well.
+
+```{r message=FALSE, warning=FALSE}
+df$Datasource <- NULL
+```
+
+### Class vs Topic, ClassID vs TopicID
+
+Class and Topic have 3 levels. Let's take a look whether those 3 level are same or not.
+
+```{r message=FALSE, warning=FALSE}
+df$Class
+df$Topic
+```
+
+Class levels : Fruits and Vegetables, Obesity / Weight Status, Physical Activity
+Topic levels: Fruits and Vegetables - Behavior,  Obesity / Weight Status,  Physical Activity - Behavior
+They are identical, so that we can remove one, which is Topic
+
+```{r message=FALSE, warning=FALSE}
+df$Topic <- NULL
+```
+
+ClassID and TopicID columms are just abbr/transform value of Class and Topic colums. We can continous Class column and ignore there two.
+
+```{r message=FALSE, warning=FALSE}
+df$ClassID <- NULL
+df$TopicID <- NULL
+```
+
+### Question vs QuestionID
+
+Again, QuestionID is a value tranfromation of Question column. We keep Question and remove QuestionID.
+
+```{r message=FALSE, warning=FALSE}
+df$QuestionID <- NULL
+```
+
+There are total 9 levels, which means this dataset might be able to split by 9 different group. Each question represent one area.
+
+### Data_Value_Unit vs Data_Value_Type vs DataValueTypeID
+
+Since Data_Value_Unit is all NA. And Data_Value_Type and DataValueTypeID are all "VALUE". We can remove them.
+
+```{r message=FALSE, warning=FALSE}
+df$Data_Value_Unit <- NULL
+df$Data_Value_Type <- NULL
+df$DataValueTypeID <- NULL
+```
+
+### Data_Value vs Data_Value_Alt
+
+Based on first glance, there 2 columns should be identical. Let's use group by to confirm.
+
+```{r message=FALSE, warning=FALSE}
+df %>% group_by(Data_Value,Data_Value_Alt)
+```
+
+After group by, total rows is 53,392, which is same as original dataset. So that, they are the same. Let's remove Data_Value_Alt.
+
+```{r message=FALSE, warning=FALSE}
+df$Data_Value_Alt <- NULL
+```
+
+### Data_Value vs Low_Confidence_Limit vs High_Confidence_Limit
+
+High_Confidence_Limit and Low_Confidence_Limit. These two columns are not very clear what is actually representing. 
+Based the on column name, it looks like the min and max value of the Data_Value in each group. 
+So that, we can keep these two columns for now. And we would reley on Data_Value more than those High_Confidence_Limit and Low_Confidence_Limit
+
+### Data_Value_Footnote_Symbol vs Data_Value_Footnote
+
+According to the name, these 2 columns are the same. when "Data_Value_Footnote_Symbol = ~" is equal "Data_Value_Footnote_Symbol = Data not available because sample size is insufficient."
+Let's filter out when Data_Value_Footnote_Symbol is ~.
+
+```{r message=FALSE, warning=FALSE}
+head(df %>% filter(Data_Value_Footnote_Symbol == "~"))
+```
+
+When Data_Value_Footnote_Symbol is ~, Data_Value value will be NA. We need to clean data. So that, we need to remove those records.
+
+```{r message=FALSE, warning=FALSE}
+df <- df %>% filter(is.na(Data_Value_Footnote_Symbol))
+```
+
+After that, we can drop Data_Value_Footnote_Symbol and Data_Value_Footnote.
+
+```{r message=FALSE, warning=FALSE}
+df$Data_Value_Footnote_Symbol <- NULL
+df$Data_Value_Footnote <- NULL
+```
+
+### Total, Age(years), Education, Gender, Income and Race/Ethnicity vs StratificationCategory1 and Stratification1
+
+Let's take a look the relationship between these columns.
+
+```{r message=FALSE, warning=FALSE}
+head(df,5);
+```
+
+According to the data, it is easy to find out columns "Total, Age(years), Education, Gender, Income and Race/Ethnicity", only one column has value. 
+For example, if column "Total" has value, columns "Education, Gender, Income and Race/Ethnicity"'s value are NA. And StratificationCategory1's value is "Total".
+If column "Gender" has value, columns "Education, Total, Income and Race/Ethnicity"'s value are NA. And StratificationCategory1's value is "Gender". Column Stratification1's value is "MALE" or "FEMALE".
+Thereforce, StratificationCategory1 is summary of columns "Total, Age(years), Education, Gender, Income and Race/Ethnicity". And Stratification1 colmn is the actual value.
+In this case, we can reply on "StratificationCategory1 and Stratification1". And remove "Total, Age(years), Education, Gender, Income and Race/Ethnicity"
+
+```{r message=FALSE, warning=FALSE}
+df$Total <- NULL
+df$`Age(years)` <- NULL
+df$Education <- NULL
+df$Gender <- NULL
+df$Income <- NULL
+df$`Race/Ethnicity` <- NULL
+```
+
+Let's group by StratificationCategory1 and Stratification1 and see how many different combinations in the dataset.
+```{r message=FALSE, warning=FALSE}
+df %>% group_by(StratificationCategory1) %>% summarise()
+df %>% group_by(StratificationCategory1) %>% summarise(CategoryDistinctValue = n_distinct(Stratification1))
+```
+
+We can see there are 6 categories. And each category might contain more than value.
+For example, in "Age(years)" category, it has 6 different values.
+
+### StratificationCategoryId1 vs StratificationCategoryId1
+
+StratificationCategoryId1 vs StratificationCategoryId1 are the transform value for StratificationCategory1 vs StratificationCategory1. 
+So that, we can remove them.
+
+```{r message=FALSE, warning=FALSE}
+df$StratificationCategoryId1 <- NULL
+df$StratificationID1 <- NULL
+```
+
+### LocationID vs LocationDesc vs LocationAbbr vs GeoLocation 
+
+Based on columns' name, they should represent the same thing. Let's group by them and see whether we can remove the redundant columns or not.
+
+```{r message=FALSE, warning=FALSE}
+df %>% group_by(LocationID, LocationAbbr, GeoLocation, LocationDesc) %>% summarise()
+```
+
+After group by, we can clearly to see there are identical and repreesnt in different way. We can keep LocationAbbr and remove others.
+
+```{r message=FALSE, warning=FALSE}
+df$LocationDesc <- NULL
+df$GeoLocation <- NULL
+df$LocationID <- NULL
+```
+
+### Data Cleaning Rround 2
+
+Let's check the dataset again and see what does the dataset looks like after first round cleaning
+
+```{r message=FALSE, warning=FALSE}
+str(df)
+```
+
+And let have a quick check whether any NA value in our dataset or not.
+
+```{r message=FALSE, warning=FALSE}
+apply(df, 2, function(x) any(is.na(x) | is.infinite(x)))
+```
+
+Great. There is no NA value found in our dataset. After dataset clean up, we have 10 columns and 48346 records(rows). Comparing to original dataset, we removed 23 columns and 5046 records(rows).
+
+After the data clean up, let's explore data and try to find out some patterns.
+
+## Explore Data
+
+We'll plot some basic graphs, to ensure that the data conform to our limited domain understanding.
+
+YearStart vs Data_Value - we expect there should a pattern between these 2 columns. Either increase by each year or decrease.
+
+```{r message=FALSE, warning=FALSE}
+df %>% ggplot(aes(x=YearStart, y=Data_Value)) + 
+  geom_point() + 
+  geom_smooth(method = lm, se = FALSE) + 
+  labs(title="YearStart vs Data_Value", x="YearStart", y="Data_Value") 
+```
+
+However, we can not find a linear relationship. How about if we consider Quesiton in this graph. It might show a clear pattern ?
+
+```{r message=FALSE, warning=FALSE}
+df %>% ggplot(aes(x=YearStart, y=Data_Value)) + 
+  geom_point() + 
+  facet_wrap(~Question) + 
+  geom_smooth(method = lm, se = FALSE) + 
+  labs(title="YearStart vs Data_Value", x="YearStart", y="Data_Value") 
+```
+
+This graph tells us a very important information. Some questions are missing data in some year.
+Let's choose one Question and take a look the relationship for each categories.
+
+```{r message=FALSE, warning=FALSE}
+q1 <- df %>% filter(Question == "Percent of adults aged 18 years and older who have obesity")
+
+q1 %>% ggplot(aes(x=YearStart, y=Data_Value, shape = StratificationCategory1)) + 
+  geom_point(aes(colour = StratificationCategory1), size = 1) + 
+  geom_smooth(method = lm, se = FALSE) + 
+  labs(title="YearStart vs Data_Value", x="YearStart", y="Data_Value")
+```
+
+We still can see a linear pattern between year and data value. It increases each year.
+
+```{r message=FALSE, warning=FALSE}
+q1 %>% ggplot(aes(x=StratificationCategory1, y=Data_Value, color = Stratification1 ) ) + 
+  geom_point() + 
+  geom_smooth(method = lm, se = FALSE) + 
+  theme(axis.text.x = element_text(angle=45)) +
+  labs(title="Category vs Data_Value", x="Catetory", y="Data_Value")
+```
+
+This graph tells Race/Ethnicity category has wider range than others. Let's take look each category.
+
+Category - Age (years)
+
+```{r message=FALSE, warning=FALSE}
+q1_age <- q1 %>% filter(StratificationCategory1 == "Age (years)");
+q1_age %>% ggplot(aes(x=Stratification1, y=Data_Value ) ) + 
+  geom_point() + 
+  facet_wrap(~ YearStart) +
+  geom_smooth(method = lm, se = FALSE) + 
+  theme(axis.text.x = element_text(angle=45)) +
+  labs(title="Category Age vs Data_Value", x="Stratification1", y="Data_Value")
+```
+
+It is clear Data_Value increases when age increase. Peek is around 35-44 and 45-54. And it drops after.
+
+Category - Education
+
+```{r message=FALSE, warning=FALSE}
+q1_education <- q1 %>% filter(StratificationCategory1 == "Education");
+q1_education %>% ggplot(aes(x=Stratification1, y=Data_Value ) ) + 
+  geom_point() + 
+  facet_wrap(~ YearStart) +
+  geom_smooth(method = lm, se = FALSE) + 
+  theme(axis.text.x = element_text(angle=45)) +
+  labs(title="Category Education vs Data_Value", x="Stratification1", y="Data_Value")
+```
+
+This graph tell us lower educaiton level seems has higher Data_Value.
