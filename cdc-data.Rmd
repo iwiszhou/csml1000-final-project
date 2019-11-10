@@ -28,7 +28,11 @@ library(fpc)
 
 Obesity is a big problem in North American society, and contributes to increased rates of diabetes, heart disease, stroke, depression, suicide, disability, death, and many other serious problems that I'll look up later.
 
-Using this dataset, we can identify groups at highest risk based on age, gender, race, education, income, etc. Using unsupervised learning, we can look for unexpected combinations of features that lead to an increased rate of obesity. Using decision trees, we can divine the most critical factors correlated with high rates of obesity. We can do this in general, or within those clusters. And, lastly, and most importantly, for any given sample, we can determine the impact of changing different factors on a given group's predicted obesity rate.
+Using this dataset, we can identify groups at highest risk based on age, gender, race, education, income, etc. Using unsupervised learning, we can look for unexpected combinations of features that lead to an increased rate of obesity. Using decision trees, we can divine the most critical factors correlated with high rates of obesity. We can do this in general, or within those clusters.
+
+## Business Objectives
+
+For any given sample, we can determine the impact of changing different factors on a given group's predicted obesity rate.
 
 ## Collect Initial Data
 
@@ -49,7 +53,7 @@ head(df);
 
 ## Describe Data
 
-The data describe 9 different questions and each one has a corresponding precentage
+The data describe 9 different questions and each one has a corresponding precentage which is Data_Value column
 
 1 Percent of adults aged 18 years and older who have an overweight classification                                                                                           
 2 Percent of adults aged 18 years and older who have obesity                                                                                                                
@@ -168,8 +172,8 @@ df$Datasource <- NULL
 Class and Topic have 3 levels. Let's take a look whether those 3 level are same or not.
 
 ```{r message=FALSE, warning=FALSE}
-df$Class
-df$Topic
+levels(df$Class)
+levels(df$Topic)
 ```
 
 Class levels : Fruits and Vegetables, Obesity / Weight Status, Physical Activity
@@ -189,14 +193,31 @@ df$TopicID <- NULL
 
 ### Question vs QuestionID
 
-Again, QuestionID is a value tranfromation of Question column. We keep Question and remove QuestionID.
+Again, QuestionID is a value tranfromation of Question column. We keep Question and remove Question.
 
 ```{r message=FALSE, warning=FALSE}
-df$QuestionID <- NULL
+df %>% group_by(QuestionID, Question) %>% summarise()
+df$Question <- NULL
 ```
 
-There are total 9 levels, which means this dataset might be able to split by 9 different group. Each question represent one area.
+There are total 9 levels, which means this dataset might be able to split by 9 different group. Below is the mapping:
+Q018 - Percent of adults who report consuming fruit less than one time daily
+Q019 - Percent of adults who report consuming vegetables less than one time daily
+Q036 - Percent of adults aged 18 years and older who have obesity
+Q037 - Percent of adults aged 18 years and older who have an overweight classification
+Q043 - Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic activity (or an equivalent combination)
+Q044 - Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic physical activity and engage in muscle-strengthening activities on 2 or more days a week
+Q045 - Percent of adults who achieve at least 300 minutes a week of moderate-intensity aerobic physical activity or 150 minutes a week of vigorous-intensity aerobic activity (or an equivalent combination)
+Q046 - Percent of adults who engage in muscle-strengthening activities on 2 or more days a week
+Q047 - Percent of adults who engage in no leisure-time physical activity
 
+According to each question, it is obviously Q036 and Q037 are relative to weight status/obesity problem.
+Q018 and Q019 are relative to healthy diet, fruit and vegetable consuming.
+Q043, Q044, Q045, Q046 and Q047 are relative to physical activity.
+
+For this final project, we will foucus on obesity rate - Q036 and Q037.
+
+In our 
 ### Data_Value_Unit vs Data_Value_Type vs DataValueTypeID
 
 Since Data_Value_Unit is all NA. And Data_Value_Type and DataValueTypeID are all "VALUE". We can remove them.
@@ -225,7 +246,12 @@ df$Data_Value_Alt <- NULL
 
 High_Confidence_Limit and Low_Confidence_Limit. These two columns are not very clear what is actually representing. 
 Based the on column name, it looks like the min and max value of the Data_Value in each group. 
-So that, we can keep these two columns for now. And we would reley on Data_Value more than those High_Confidence_Limit and Low_Confidence_Limit
+So that, we can remove two columns for now. And we would reley on Data_Value more than those High_Confidence_Limit and Low_Confidence_Limit
+
+```{r message=FALSE, warning=FALSE}
+df$Low_Confidence_Limit <- NULL;
+df$High_Confidence_Limit <- NULL;
+```
 
 ### Data_Value_Footnote_Symbol vs Data_Value_Footnote
 
@@ -307,6 +333,12 @@ df$GeoLocation <- NULL
 df$LocationID <- NULL
 ```
 
+Some of Location are not including in US's 50+ states or some data is crossing the whole US. We need to remove those as well.
+```{r message=FALSE, warning=FALSE}
+removeLocation <- c("US","GU","PR","VI");
+df <- df %>% filter(!LocationAbbr %in% removeLocation);
+```
+
 ### Data Cleaning Rround 2
 
 Let's check the dataset again and see what does the dataset looks like after first round cleaning
@@ -343,21 +375,25 @@ However, we can not find a linear relationship. How about if we consider Quesito
 ```{r message=FALSE, warning=FALSE}
 df %>% ggplot(aes(x=YearStart, y=Data_Value)) + 
   geom_point() + 
-  facet_wrap(~Question) + 
+  facet_wrap(~QuestionID) + 
   geom_smooth(method = lm, se = FALSE) + 
-  labs(title="YearStart vs Data_Value", x="YearStart", y="Data_Value") 
+  labs(title="YearStart vs Data_Value", x="YearStart", y="Data_Value");
 ```
 
-This graph tells us a very important information. Some questions are missing data in some year.
-Let's choose one Question and take a look the relationship for each categories.
+This graph tells us a very important information. Not all questions have a data from 2011-2016. Some of them are missing data in 2012, 2014 and 2016. 
+Maybe we can select different questions such as Q036, Q037, AND Q047 becuase they have full data from 2011-2016.
+We could alos choose a single year, such as 2015 all questions have full data in year 2015.
+First of all, let's choose one Question and take a look the relationship for each categories.
+
+### Single Question Analysis - Q036 Percent of adults aged 18 years and older who have obesity
 
 ```{r message=FALSE, warning=FALSE}
-q1 <- df %>% filter(Question == "Percent of adults aged 18 years and older who have obesity")
+q1 <- df %>% filter(QuestionID == "Q036");
 
 q1 %>% ggplot(aes(x=YearStart, y=Data_Value, shape = StratificationCategory1)) + 
   geom_point(aes(colour = StratificationCategory1), size = 1) + 
   geom_smooth(method = lm, se = FALSE) + 
-  labs(title="YearStart vs Data_Value", x="YearStart", y="Data_Value")
+  labs(title="YearStart vs Data_Value", x="YearStart", y="Data_Value");
 ```
 
 We still can see a linear pattern between year and data value. It increases each year.
@@ -367,10 +403,10 @@ q1 %>% ggplot(aes(x=StratificationCategory1, y=Data_Value, color = Stratificatio
   geom_point() + 
   geom_smooth(method = lm, se = FALSE) + 
   theme(axis.text.x = element_text(angle=45)) +
-  labs(title="Category vs Data_Value", x="Catetory", y="Data_Value")
+  labs(title="All Category vs Data_Value", x="All Catetory", y="Obesity percentage")
 ```
 
-This graph tells Race/Ethnicity category has wider range than others. Let's take look each category.
+Different category has different perceatage of obesity. Race/Ethnicity category has wider range than others. Age category has a high percetage of obesity, it is all green starting from 30 in y axis. Let's take look into each category.
 
 ###### Category - Age (years)
 
@@ -412,7 +448,7 @@ q1_income %>% ggplot(aes(x=Stratification1, y=Data_Value ) ) +
   labs(title="Category Income vs Obesity percentage", x="Income", y="Obesity percentage")
 ```
 
-People has lower income has higher percentage of obesity 
+People has lower income with higher percentage of obesity. People has higher income with lower percentage of obestity.
 
 ###### Category - Race/Ethnicity
 
@@ -442,4 +478,4 @@ q1_gender %>% ggplot(aes(x=Stratification1, y=Data_Value ) ) +
 
 For this graph, we only can see female has wider range than male.
 
-For "Percent of adults aged 18 years and older who have obesity" question, we can see middle aged people, who has lower education level and income less than $15,000, they will have higher chances to have a obesity health problem.
+#### For "Percent of adults aged 18 years and older who have obesity" question, categories Education, Income, Age and Race/Ethnicity, which has significant impact on obesity. For example, middle aged people(35-44), who has lower education level and income less than $15,000, they will have higher chances to have a obesity health problem.
