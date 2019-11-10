@@ -364,7 +364,7 @@ We'll plot some basic graphs, to ensure that the data conform to our limited dom
 YearStart vs Data_Value - we expect there should a pattern between these 2 columns. Either increase by each year or decrease.
 
 ```{r message=FALSE, warning=FALSE}
-df %>% ggplot(aes(x=YearStart, y=Data_Value)) + 
+df %>% ggplot(aes(x=YearStart, y=Data_Value, color=YearStart)) + 
   geom_point() + 
   geom_smooth(method = lm, se = FALSE) + 
   labs(title="YearStart vs Data_Value", x="YearStart", y="Data_Value") 
@@ -373,7 +373,7 @@ df %>% ggplot(aes(x=YearStart, y=Data_Value)) +
 However, we can not find a linear relationship. How about if we consider Quesiton in this graph. It might show a clear pattern ?
 
 ```{r message=FALSE, warning=FALSE}
-df %>% ggplot(aes(x=YearStart, y=Data_Value)) + 
+df %>% ggplot(aes(x=YearStart, y=Data_Value, color=YearStart)) + 
   geom_point() + 
   facet_wrap(~QuestionID) + 
   geom_smooth(method = lm, se = FALSE) + 
@@ -462,7 +462,7 @@ q1_race <- q1 %>% filter(StratificationCategory1 == "Race/Ethnicity");
 q1_race %>% ggplot(aes(x=Stratification1, y=Data_Value, color=Stratification1) ) + 
   geom_boxplot() + 
   facet_wrap(~ YearStart) +
-  geom_smooth(method = lm, se = FALSE) + 
+  coord_cartesian(ylim=c(0,50)) + 
   theme(axis.text.x = element_text(angle=45)) +
   stat_summary(fun.y=mean, geom="line", aes(group=1))  + 
   stat_summary(fun.y=mean, geom="point") +
