@@ -627,15 +627,15 @@ q1_h_model_df <- as.data.frame(scale(q1_h_model_df))
 #### Calculate euclidean distance
 
 ```{r message=FALSE, warning=FALSE}
-q1_h_model_df_dist <- dist(q1_h_model_df, method = 'euclidean')
+#q1_h_model_df_dist <- dist(q1_h_model_df, method = 'euclidean')
 ```
 
 ##### Build hierarchical model
 
 ```{r message=FALSE, warning=FALSE}
-hclust_avg <- hclust(q1_h_model_df_dist, method = 'average');
-plot(hclust_avg);
-abline(h = 3.8, col = 'red')
+#hclust_avg <- hclust(q1_h_model_df_dist, method = 'average');
+#plot(hclust_avg);
+#abline(h = 3.8, col = 'red')
 ```
 
 
@@ -644,10 +644,10 @@ However, we can see there is 2 big clusters just right under around h=3.8, if cu
 In the 1st model, we choose k=3. In this dengrogram, let's cut the tree at 3.8, so that, we will get 4 clusters.
 
 ```{r message=FALSE, warning=FALSE}
-cut_avg <- cutree(hclust_avg, h = 3.8);
-plot(hclust_avg);
-rect.hclust(hclust_avg , k = 4, border = 2:6);
-abline(h = 3.8, col = 'red')
+#cut_avg <- cutree(hclust_avg, h = 3.8);
+#plot(hclust_avg);
+#rect.hclust(hclust_avg , k = 4, border = 2:6);
+#abline(h = 3.8, col = 'red')
 
 ```
 
@@ -662,6 +662,7 @@ However, we can see the 2nd cluster(between green and blue) one, which is too sm
       * **Column Correlation:**
          + LocationAbbr and LocationDesc:
 ```{r LocationCorr, echo=FALSE}
+      df <- read_csv("Nutrition__Physical_Activity__and_Obesity_-_Behavioral_Risk_Factor_Surveillance_System.csv")
       df %>% select(LocationAbbr, LocationDesc) %>% count(LocationAbbr, LocationDesc) %>% 
          ggplot(aes(x=LocationAbbr, y=LocationDesc)) +
           geom_tile(mapping = aes(fill = n))
