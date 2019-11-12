@@ -40,6 +40,7 @@ For any given sample, we can determine the impact of changing different factors 
 ```{r importDataFile, echo=FALSE, include=FALSE}
 library(tidyverse)
 library(dplyr)
+library(modelr)
 
 
 df <- read_csv("Nutrition__Physical_Activity__and_Obesity_-_Behavioral_Risk_Factor_Surveillance_System.csv")
@@ -51,6 +52,71 @@ comma <- function(x)  format(x, digits = 2, big.mark = ",")
 
 ```
      The source file has `r comma(nrow(df))` rows and `r comma(ncol(df))` columns
+### Describe Data
+
+    *  *The data describe 9 different questions and each one has a corresponding precentage which is Data_Value column*
+
+      + 1. Percent of adults aged 18 years and older who have an overweight classification
+
+      + 2. Percent of adults aged 18 years and older who have obesity
+
+      + 3. Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic activity
+      + 4. Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic physical
+      + 5. Percent of adults who achieve at least 300 minutes a week of moderate-intensity aerobic physical activity or 150 minutes a
+week of vigorous-intensity aerobic activity
+      + 6. Percent of adults who engage in muscle-strengthening activities on 2 or more days a week
+
+      + 7. Percent of adults who engage in no leisure-time physical activity
+
+      + 8. Percent of adults who report consuming fruit less than one time daily
+
+      + 9. Percent of adults who report consuming vegetables less than one time daily
+
+    * *For each of there questions, there are 6 different categories*
+
+      1. Age (years)
+      2. Education
+      3. Gender
+      4. Income
+      5. Race/Ethnicity
+      6. Total
+
+    * *For each of there categories, which has different values*
+
+      1. *Age (years)* 
+        * 18 - 24
+        * 25 - 34
+        * 35 - 44
+        * 45 - 54
+        * 55 - 64
+        * 65 or older
+      2. *Education*       
+        * Less than high school
+        * High school graduate
+        * Some college or technical school
+        * College graduate
+      3. *Gender* 
+        * Male
+        * Female
+      4. *Income* 
+        * Less than $15,000
+        * $15,000 - $24,999
+        * $25,000 - $34,999
+        * $35,000 - $49,999
+        * $50,000 - $74,999
+        * $75,000 or greater
+        * Data not reported
+      5. *Race/Ethnicity* 
+        * 2 or more races
+        * American Indian/Alaska Native
+        * Asian
+        * Hawaiian/Pacific Islander
+        * Hispanic
+        * Non-Hispanic Black
+        * Non-Hispanic White
+        * Other
+      6. *Total* 
+        * Total
 
      
   2. **Clean dataset** 
@@ -144,7 +210,23 @@ comma <- function(x)  format(x, digits = 2, big.mark = ",")
     clean_df <- clean_df %>% mutate( YearStart = as.integer(YearStart) )
     
 ```
+  3.  **Building Models**
+```{r age/data_value, echo = FALSE}
+  ggplot( data = filter(clean_df, Age != "Unknown"), aes(x=Age, y= Data_Value)) + geom_boxplot()
+```
+  *concern about the obesity (Data_Value) is increasing with age and reach to highest at 55-64 years old. And obesity becomes less concern when getting 65 or older.*
+```{r age/data_value_model, echo = FALSE}
+   age_mod <- lm( Data_Value ~ Age, data = clean_df)
+   age_grid <- clean_df %>% filter(Age != "Unknown") %>% data_grid( Age )
+   age_grid <- age_grid %>% 
+                add_predictions(age_mod)
+   ggplot( data = filter(clean_df, Age != "Unknown" ), aes(x=Age)) + 
+                geom_point( aes(y = Data_Value)) + 
+                geom_point( age_grid, mapping = aes(x=Age, y=pred), color = "red", size = 2, fill = "red")
+   
 
+```
+  
 
 ### **Unsupervised Learning - build a regression/random forse model**
   1.  **Import the source file** - Nutrition__Physical_Activity__and_Obesity_-_Behavioral_Risk_Factor_Surveillance_System.csv:
@@ -164,73 +246,6 @@ df <- read_csv("Nutrition__Physical_Activity__and_Obesity_-_Behavioral_Risk_Fact
 
 ```
      The source file has `r comma(nrow(df))` rows and `r comma(ncol(df))` columns
-### Describe Data
-
-    * *The data describe 9 different questions and each one has a corresponding precentage which is Data_Value column*
-
-      1. Percent of adults aged 18 years and older who have an overweight classification
-
-      2. Percent of adults aged 18 years and older who have obesity
-
-      3. Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a w
-eek of vigorous-intensity aerobic activity (or a…
-      4. Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a w
-eek of vigorous-intensity aerobic physical activ…
-      5. Percent of adults who achieve at least 300 minutes a week of moderate-intensity aerobic physical activity or 150 minutes a
-week of vigorous-intensity aerobic activity (or …
-      6. Percent of adults who engage in muscle-strengthening activities on 2 or more days a week
-
-      7. Percent of adults who engage in no leisure-time physical activity
-
-      8. Percent of adults who report consuming fruit less than one time daily
-
-      9. Percent of adults who report consuming vegetables less than one time daily
-
-    * *For each of there questions, there are 6 different categories*
-
-      1. Age (years)
-      2. Education
-      3. Gender
-      4. Income
-      5. Race/Ethnicity
-      6. Total
-
-    * *For each of there categories, which has different values*
-
-      1. *Age (years)* 
-        * 18 - 24
-        * 25 - 34
-        * 35 - 44
-        * 45 - 54
-        * 55 - 64
-        * 65 or older
-      2. *Education*       
-        * Less than high school
-        * High school graduate
-        * Some college or technical school
-        * College graduate
-      3. *Gender* 
-        * Male
-        * Female
-      4. *Income* 
-        * Less than $15,000
-        * $15,000 - $24,999
-        * $25,000 - $34,999
-        * $35,000 - $49,999
-        * $50,000 - $74,999
-        * $75,000 or greater
-        * Data not reported
-      5. *Race/Ethnicity* 
-        * 2 or more races
-        * American Indian/Alaska Native
-        * Asian
-        * Hawaiian/Pacific Islander
-        * Hispanic
-        * Non-Hispanic Black
-        * Non-Hispanic White
-        * Other
-      6. *Total* 
-        * Total
 
 
 At first glance, some columns are just described another. Let's look at one by one from left to right. And select the necessary columns.

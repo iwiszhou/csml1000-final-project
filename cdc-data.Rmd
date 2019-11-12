@@ -1,9 +1,9 @@
 ---
-title: Clustering CDC Data - Nutrition, Physical Activity, & Obesity using Unsupervised
-  Learning
+title: "Clustering CDC Data - Nutrition, Physical Activity, & Obesity using Unsupervised and Supervised Learning"
 output:
-  # pdf_document: default - coloured graphs take way too long to render in PDF form.
   html_document: default
+date:  2019-11-09
+bibliography: reference.bib
 ---
 
 # CSML1000 Project #2, by Group 8
@@ -12,107 +12,241 @@ Pete Gray <ptgray@my.yorku.ca>
 Xiaohai Lu <yu271637@my.yorku.ca>
 Haofeng Zhou <zhf85@my.yorku.ca>
 
-```{r message=FALSE, warning=FALSE}
-library(dplyr);
-library(ggplot2);
-library(knitr);
-library(validate);
-library(tidyverse);  # data manipulation
-library(cluster);    # clustering algorithms
-library(clusterSim);
-library(factoextra);
-library(fpc);
-library(flexclust);
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# OVERVIEW
-
+## Problem Statement
 Obesity is a big problem in North American society, and contributes to increased rates of diabetes, heart disease, stroke, depression, suicide, disability, death, and many other serious problems that I'll look up later.
 
-Using this dataset, we can identify groups at highest risk based on age, gender, race, education, income, etc. Using unsupervised learning, we can look for unexpected combinations of features that lead to an increased rate of obesity. Using decision trees, we can divine the most critical factors correlated with high rates of obesity. We can do this in general, or within those clusters.
+Using this dataset, we can identify groups at highest risk based on age, gender, race, education, income, etc. Using supervised and unsupervised learning, we can look for unexpected combinations of features that lead to an increased rate of obesity. Using decision trees, we can divine the most critical factors correlated with high rates of obesity. We can do this in general, or within those clusters.
+
+This dataset includes data on adult's diet, physical activity, and weight status from Behavioral Risk Factor Surveillance System. This data is used for DNPAO's Data, Trends, and Maps database, which provides national and state specific data on obesity, nutrition, physical activity, and breastfeeding.  The dataset provider is particularly curious on whether socioeconomic status has an impact on obesity.  In her analysis, she compares the obesity rate in each state, and then perform a linear regression on the obesity rate for each educational status and the income bracket. [@Suzanne] 
+
 
 ## Business Objectives
 
 For any given sample, we can determine the impact of changing different factors on a given group's predicted obesity rate.
 
-## Collect Initial Data
 
-Load the data from the local filesystem:
+## Approach
 
-```{r message=FALSE, warning=FALSE}
-#load data
-df <- read_csv("dataset.csv");
-df_origin <- df
+
+### **Supervised Learning - build a regression/random forse model**
+
+
+  1.  **Import the source file** - Nutrition__Physical_Activity__and_Obesity_-_Behavioral_Risk_Factor_Surveillance_System.csv:
+```{r importDataFile, echo=FALSE, include=FALSE}
+library(tidyverse)
+library(dplyr)
+library(modelr)
+
+
+df <- read_csv("Nutrition__Physical_Activity__and_Obesity_-_Behavioral_Risk_Factor_Surveillance_System.csv")
+df %>% 
+  print(n = 10, width = Inf)
+problems(df)
+
+comma <- function(x)  format(x, digits = 2, big.mark = ",")
+
 ```
+     The source file has `r comma(nrow(df))` rows and `r comma(ncol(df))` columns
+### Describe Data
 
-Output a quick and dirty summary of the dataset, to ensure that we haven't loaded something scrambled, or the wrong thing:
+    *  *The data describe 9 different questions and each one has a corresponding precentage which is Data_Value column*
 
-```{r message=FALSE, warning=FALSE}
-str(df);
-head(df);
+      + 1. Percent of adults aged 18 years and older who have an overweight classification
+
+      + 2. Percent of adults aged 18 years and older who have obesity
+
+      + 3. Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic activity
+      + 4. Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic physical
+      + 5. Percent of adults who achieve at least 300 minutes a week of moderate-intensity aerobic physical activity or 150 minutes a
+week of vigorous-intensity aerobic activity
+      + 6. Percent of adults who engage in muscle-strengthening activities on 2 or more days a week
+
+      + 7. Percent of adults who engage in no leisure-time physical activity
+
+      + 8. Percent of adults who report consuming fruit less than one time daily
+
+      + 9. Percent of adults who report consuming vegetables less than one time daily
+
+    * *For each of there questions, there are 6 different categories*
+
+      1. Age (years)
+      2. Education
+      3. Gender
+      4. Income
+      5. Race/Ethnicity
+      6. Total
+
+    * *For each of there categories, which has different values*
+
+      1. *Age (years)* 
+        * 18 - 24
+        * 25 - 34
+        * 35 - 44
+        * 45 - 54
+        * 55 - 64
+        * 65 or older
+      2. *Education*       
+        * Less than high school
+        * High school graduate
+        * Some college or technical school
+        * College graduate
+      3. *Gender* 
+        * Male
+        * Female
+      4. *Income* 
+        * Less than $15,000
+        * $15,000 - $24,999
+        * $25,000 - $34,999
+        * $35,000 - $49,999
+        * $50,000 - $74,999
+        * $75,000 or greater
+        * Data not reported
+      5. *Race/Ethnicity* 
+        * 2 or more races
+        * American Indian/Alaska Native
+        * Asian
+        * Hawaiian/Pacific Islander
+        * Hispanic
+        * Non-Hispanic Black
+        * Non-Hispanic White
+        * Other
+      6. *Total* 
+        * Total
+
+     
+  2. **Clean dataset** 
+      * **Column Correlation:**
+         + LocationAbbr and LocationDesc:
+```{r LocationCorr, echo=FALSE}
+      df %>% select(LocationAbbr, LocationDesc) %>% count(LocationAbbr, LocationDesc) %>% 
+         ggplot(aes(x=LocationAbbr, y=LocationDesc)) +
+          geom_tile(mapping = aes(fill = n))
 ```
+         + Column Datasource 
+```{r DatasourceCol, echo=FALSE}
+        ggplot(data=df, mapping = aes(x=Datasource)) + 
+            stat_count()
+```
+         + Class and Topic columns are correlated:
+```{r classTopicCorr, echo=FALSE}
+      ggplot(data=df, mapping = aes(x=Class, y=Topic)) +
+        geom_count()
+```
+         + Data_Value is the mean of Low_Confidence_Limit and High_Confidence_Limit
+```{r DataValueRel, echo=FALSE, warning=FALSE}
+  temp_df <- df %>% select(Data_Value, Low_Confidence_Limit, High_Confidence_Limit) %>% mutate(row = row_number(), mean_value=(Low_Confidence_Limit +  High_Confidence_Limit)/2 ) 
+  temp_df %>% ggplot(mapping=aes(x=Data_Value, y=mean_value)) + 
+    geom_boxplot(mapping=aes(group=cut_number(Data_Value, 10)), na.rm = TRUE)
 
-## Describe Data
+```
+         
+       
+      * **Clean the columns:**
+```{r dataStructure, echo=FALSE, results='asis' }
+  library(knitr)
+  dd <- tibble(
+    colName = colnames(df),
+    action = c("change to int",
+               "remove, corelate with YearStart",
+               "pass",
+               "remove, correlate with LocationAbbr",
+               "remove, may not relate to the problem",
+               "remove, correlate with TopicID",
+               "remove, because corelate to Class",
+               "remove, correlate with QuestionID",
+               "remove, contain only NA",
+               "remove, contains only value 'Value'",
+               "remove 'NA' observations",
+               "remove, corelate to Data_Value",
+               "remove, correlate to Data_Value_Footnote",
+               "remove, contain only NA after removing Data_Value NA obs",
+               "remove, Data_Value = mean(Low_confidence_Limit, High_Confidence_Limit)",
+               "remove, Data_Value = mean(Low_confidence_Limit, High_Confidence_Limit)",
+               "pass",
+               "update NA -> 'Unknown'",
+               "update colname -> Age, update NA-> 'Unknown'",
+               "update NA -> 'Unknown",
+               "update NA -> 'Unknown",
+               "update NA -> 'Unknown'",
+               "update colname -> 'Race' and update NA -> 'Unknown'",
+               "remove, correlate to LocationAbbr",
+               "remove, correlate with col: TopicID",
+               "pass",
+               "pass",
+               "remove, contain only one value 'VALUE'",
+               "remove, corelated with column GeoLocation",
+               "remove, corelation with StratificationCategoryId1",
+               "remove, corelation with Income, Race/Ethnicity, Gender, Education, Age, Total, sub catigory under spread StratificationCategoryId1",
+               "remove, gathered columns from OVR,GEN,EDU,AGEYR,INC,RACE",
+               "remove, combined col: StratificationCategoryId1 + Stratification1"
+    )
+  )
+  kable(dd, caption="column list")
+```
+```{r tidyColumns, echo=FALSE}
+    replaceNA <- function(df, colName, value='Unknown') {
+      df[[colName]] <- ifelse( is.na(df[[colName]]), value, df[[colName]])
+      return(df)
+    }
 
-The data describe 9 different questions and each one has a corresponding precentage which is Data_Value column
+    #replaceNA(df=df, colName = "Data_Value_Footnote", "" )
 
-1 Percent of adults aged 18 years and older who have an overweight classification                                                                                           
-2 Percent of adults aged 18 years and older who have obesity                                                                                                                
-3 Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic activity (or a…
-4 Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic physical activ…
-5 Percent of adults who achieve at least 300 minutes a week of moderate-intensity aerobic physical activity or 150 minutes a week of vigorous-intensity aerobic activity (or …
-6 Percent of adults who engage in muscle-strengthening activities on 2 or more days a week                                                                                    
-7 Percent of adults who engage in no leisure-time physical activity                                                                                                           
-8 Percent of adults who report consuming fruit less than one time daily                                                                                                       
-9 Percent of adults who report consuming vegetables less than one time daily
+    clean_df <- df %>%
+      select( -YearEnd, -LocationDesc, -Datasource, -Class, -Topic, -Question, -Data_Value_Unit, -Data_Value_Type, -Data_Value_Alt,
+              -Data_Value_Footnote_Symbol, -Data_Value_Footnote, -GeoLocation, -ClassID, -DataValueTypeID, -LocationID, 
+              -StratificationCategory1, -Stratification1, -StratificationCategoryId1, -StratificationID1, 
+              -High_Confidence_Limit, -Low_Confidence_Limit ) %>%
+      rename( Age = `Age(years)`,  Race = `Race/Ethnicity` )
+    
+    clean_df <- clean_df %>% replaceNA(. , colName = "Total") %>% replaceNA(. , colName = "Age") %>%  replaceNA(. , colName = "Education") %>%
+                replaceNA(. , colName = "Gender") %>% replaceNA(. , colName = "Income") %>% replaceNA(. , colName = "Race") %>%
+                filter( !is.na(Data_Value) )
+    
+    clean_df <- clean_df %>% mutate( YearStart = as.integer(YearStart) )
+    
+```
+  3.  **Building Models**
+```{r age/data_value, echo = FALSE}
+  ggplot( data = filter(clean_df, Age != "Unknown"), aes(x=Age, y= Data_Value)) + geom_boxplot()
+```
+  *concern about the obesity (Data_Value) is increasing with age and reach to highest at 55-64 years old. And obesity becomes less concern when getting 65 or older.*
+```{r age/data_value_model, echo = FALSE}
+   age_mod <- lm( Data_Value ~ Age, data = clean_df)
+   age_grid <- clean_df %>% filter(Age != "Unknown") %>% data_grid( Age )
+   age_grid <- age_grid %>% 
+                add_predictions(age_mod)
+   ggplot( data = filter(clean_df, Age != "Unknown" ), aes(x=Age)) + 
+                geom_point( aes(y = Data_Value)) + 
+                geom_point( age_grid, mapping = aes(x=Age, y=pred), color = "red", size = 2, fill = "red")
+   
 
-For each of there questions, there are 6 different categories
+```
+  
 
-1 Age (years)            
-2 Education              
-3 Gender                 
-4 Income                 
-5 Race/Ethnicity         
-6 Total
+### **Unsupervised Learning - build a regression/random forse model**
+  1.  **Import the source file** - Nutrition__Physical_Activity__and_Obesity_-_Behavioral_Risk_Factor_Surveillance_System.csv:
+```{r step1, echo=FALSE}
+library(tidyverse)
+library(dplyr)
+library(ggplot2);
+library(knitr);
+library(validate);
+library(cluster);    # clustering algorithms
+library(clusterSim);
+library(factoextra);
+library(fpc);
+library(flexclust);
 
-For each of there categories, which has different values
+df <- read_csv("Nutrition__Physical_Activity__and_Obesity_-_Behavioral_Risk_Factor_Surveillance_System.csv")
 
-Age (years)	6	
-  - 18 - 24
-  - 25 - 34
-  - 35 - 44
-  - 45 - 54
-  - 55 - 64
-  - 65 or older
-Education	4	
-  - Less than high school
-  - High school graduate
-  - Some college or technical school
-  - College graduate
-Gender	2
-  - Male
-  - Female			
-Income	7
-  - Less than $15,000
-  - $15,000 - $24,999
-  - $25,000 - $34,999
-  - $35,000 - $49,999
-  - $50,000 - $74,999
-  - $75,000 or greater
-  - Data not reported
-Race/Ethnicity	8		
-  - 2 or more races
-  - American Indian/Alaska Native			
-  - Asian			
-  - Hawaiian/Pacific Islander			
-  - Hispanic			
-  - Non-Hispanic Black			
-  - Non-Hispanic White			
-  - Other
-Total	1	
-  - Total
+```
+     The source file has `r comma(nrow(df))` rows and `r comma(ncol(df))` columns
 
-## Data cleaning
 
 At first glance, some columns are just described another. Let's look at one by one from left to right. And select the necessary columns.
 Firs of all, converting all character to factor
@@ -619,15 +753,15 @@ q1_h_model_df <- as.data.frame(scale(q1_h_model_df))
 #### Calculate euclidean distance
 
 ```{r message=FALSE, warning=FALSE}
-q1_h_model_df_dist <- dist(q1_h_model_df, method = 'euclidean')
+#q1_h_model_df_dist <- dist(q1_h_model_df, method = 'euclidean')
 ```
 
 ##### Build hierarchical model
 
 ```{r message=FALSE, warning=FALSE}
-hclust_avg <- hclust(q1_h_model_df_dist, method = 'average');
-plot(hclust_avg);
-abline(h = 3.8, col = 'red')
+#hclust_avg <- hclust(q1_h_model_df_dist, method = 'average');
+#plot(hclust_avg);
+#abline(h = 3.8, col = 'red')
 ```
 
 
@@ -636,17 +770,15 @@ However, we can see there is 2 big clusters just right under around h=3.8, if cu
 In the 1st model, we choose k=3. In this dengrogram, let's cut the tree at 3.8, so that, we will get 4 clusters.
 
 ```{r message=FALSE, warning=FALSE}
-cut_avg <- cutree(hclust_avg, h = 3.8);
-plot(hclust_avg);
-rect.hclust(hclust_avg , k = 4, border = 2:6);
-abline(h = 3.8, col = 'red')
+#cut_avg <- cutree(hclust_avg, h = 3.8);
+#plot(hclust_avg);
+#rect.hclust(hclust_avg , k = 4, border = 2:6);
+#abline(h = 3.8, col = 'red')
 
 ```
 
+
 However, we can see the 2nd cluster(between green and blue) one, which is too small. It might make sence we should only use k=3 rather than 4.
 
-## Supervised Learning - build a regression/random forse model
-TODO
 
-## Conclusion
-TODO
+*References*
