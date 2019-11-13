@@ -2,11 +2,11 @@
 title: Clustering CDC Data - Nutrition, Physical Activity, & Obesity using Unsupervised
   Learning
 output:
-  # pdf_document: default - coloured graphs take way too long to render in PDF form.
   html_document: default
+  # pdf_document: default - coloured graphs take way too long to render in PDF form.
 ---
 
-# CSML1000 Project #2, by Group 8
+## CSML1000 Final Project, by Group 8
 Tamer Hanna <tamerh@my.yorku.ca>
 Pete Gray <ptgray@my.yorku.ca>
 Xiaohai Lu <yu271637@my.yorku.ca>
@@ -25,7 +25,7 @@ library(fpc);
 library(flexclust);
 ```
 
-# OVERVIEW
+## OVERVIEW
 
 Obesity is a big problem in North American society, and contributes to increased rates of diabetes, heart disease, stroke, depression, suicide, disability, death, and many other serious problems that I'll look up later.
 
@@ -386,7 +386,9 @@ Maybe we can select different questions such as Q036 and Q037 becuase they have 
 We could alos choose a single year, such as 2015 all questions have full data in year 2015.(We could invest this one if we have more time.)
 First of all, let's choose Q036 and Q037 and take a look the relationship for each categories.
 
-### Obesity Question Analysis - Q036 Percent of adults aged 18 years and older who have obesity. Q037 - Percent of adults aged 18 years and older who have an overweight classification
+#### Obesity Question Analysis 
+####  - Q036 - Percent of adults aged 18 years and older who have obesity. 
+####  - Q037 - Percent of adults aged 18 years and older who have an overweight classification
 
 ```{r message=FALSE, warning=FALSE}
 q1 <- df %>% filter(QuestionID %in% c("Q036","Q037") );
@@ -409,7 +411,7 @@ q1 %>% ggplot(aes(x=StratificationCategory1, y=Data_Value, color = Stratificatio
 
 Different category has different perceatage of obesity. Race/Ethnicity category has wider range than others. Age category has a high percetage of obesity, it is all green starting from 30 in y axis. Let's take look into each category.
 
-###### Category - Age (years)
+##### Category - Age (years)
 
 ```{r message=FALSE, warning=FALSE}
 q1_age <- q1 %>% filter(StratificationCategory1 == "Age (years)");
@@ -430,7 +432,7 @@ q1_age %>% group_by(Stratification1) %>% dplyr::summarize(Mean = mean(Data_Value
 
 It is clear obesity rate increases when age increase. Peek is around 55 - 64. And it drops after.
 
-###### Category - Education
+##### Category - Education
 
 ```{r message=FALSE, warning=FALSE}
 q1_education <- q1 %>% filter(StratificationCategory1 == "Education");
@@ -452,7 +454,7 @@ q1_education %>% group_by(Stratification1) %>% dplyr::summarize(Mean = mean(Data
 
 This graph tell us lower educaiton level(High school graduate & Less than high school) seems has higher obesity rate. According to the mean value, we can say peole has Less than high school education has highest obesity rate.
 
-###### Category - Income
+##### Category - Income
 
 ```{r message=FALSE, warning=FALSE}
 q1_income <- q1 %>% filter(StratificationCategory1 == "Income");
@@ -475,7 +477,7 @@ q1_income %>% group_by(Stratification1) %>% dplyr::summarize(Mean = mean(Data_Va
 Mean value tells us two boundaries case ($75,000+ and $15,000-) has lowest mean obesity rate. 
 However, people has income between $75,000 or greater, which has bigger range than others. And the mean value is increasing year by year.
 
-###### Category - Race/Ethnicity
+##### Category - Race/Ethnicity
 
 ```{r message=FALSE, warning=FALSE}
 q1_race <- q1 %>% filter(StratificationCategory1 == "Race/Ethnicity");
@@ -491,7 +493,7 @@ q1_race %>% ggplot(aes(x=Stratification1, y=Data_Value, color=Stratification1) )
 
 It is very clear Asian people has lowest obesity rate.
 
-###### Category - Gender
+##### Category - Gender
 
 ```{r message=FALSE, warning=FALSE}
 q1_gender <- q1 %>% filter(StratificationCategory1 == "Gender");
@@ -505,9 +507,10 @@ q1_gender %>% ggplot(aes(x=Stratification1, y=Data_Value, color=Stratification1 
 
 For this graph, we only can see male has wider range than femail. And male's mean value is higher than female.
 
-#### For "Percent of adults aged 18 years and older who have obesity" question, categories Gender, Education, Income, Age and Race/Ethnicity, which has significant impact on obesity. For example, people around 55-64, whose is male, who has lower education level and income less than $15,000, they will have higher chances to have a obesity health problem.
+##### For "Percent of adults aged 18 years and older who have obesity" question, categories Gender, Education, Income, Age and Race/Ethnicity, which has significant impact on obesity. For example, people around 55-64, whose is male, who has lower education level and income less than $15,000, they will have higher chances to have a obesity health problem.
 
-###### How about the obesity rate vs location(each state)
+
+##### How about the obesity rate vs location(each state)
 
 Let's group the dataset by year, location and categories
 
