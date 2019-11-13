@@ -54,45 +54,45 @@ head(df);
 
 ## Describe Data
 
-The data describe 9 different questions and each one has a corresponding precentage which is Data_Value column
+#### The data describe 9 different questions and each one has a corresponding precentage which is Data_Value column
 
-1 Percent of adults aged 18 years and older who have an overweight classification                                                                                           
-2 Percent of adults aged 18 years and older who have obesity                                                                                                                
-3 Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic activity (or a…
-4 Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic physical activ…
-5 Percent of adults who achieve at least 300 minutes a week of moderate-intensity aerobic physical activity or 150 minutes a week of vigorous-intensity aerobic activity (or …
-6 Percent of adults who engage in muscle-strengthening activities on 2 or more days a week                                                                                    
-7 Percent of adults who engage in no leisure-time physical activity                                                                                                           
-8 Percent of adults who report consuming fruit less than one time daily                                                                                                       
-9 Percent of adults who report consuming vegetables less than one time daily
+1. Percent of adults aged 18 years and older who have an overweight classification                                             
+2. Percent of adults aged 18 years and older who have obesity                                                                 
+3. Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic activity (or a…
+4. Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic physical activ…
+5. Percent of adults who achieve at least 300 minutes a week of moderate-intensity aerobic physical activity or 150 minutes a week of vigorous-intensity aerobic activity (or …
+6. Percent of adults who engage in muscle-strengthening activities on 2 or more days a week                                   7. Percent of adults who engage in no leisure-time physical activity                                                          8. Percent of adults who report consuming fruit less than one time daily                                                      9. Percent of adults who report consuming vegetables less than one time daily
 
-For each of there questions, there are 6 different categories
+#### For each of there questions, there are 6 different categories
 
-1 Age (years)            
-2 Education              
-3 Gender                 
-4 Income                 
-5 Race/Ethnicity         
-6 Total
+1. Age (years)            
+2. Education              
+3. Gender                 
+4. Income                 
+5. Race/Ethnicity         
+6. Total
 
-For each of there categories, which has different values
+#### For each of there categories, which has different values
 
-Age (years)	6	
+1. Age (years)	(6 levels)
   - 18 - 24
   - 25 - 34
   - 35 - 44
   - 45 - 54
   - 55 - 64
   - 65 or older
-Education	4	
+
+2. Education	(4 levels)
   - Less than high school
   - High school graduate
   - Some college or technical school
   - College graduate
-Gender	2
+
+3. Gender (2 levels)
   - Male
-  - Female			
-Income	7
+  - Female
+
+4. Income (7 levels)
   - Less than $15,000
   - $15,000 - $24,999
   - $25,000 - $34,999
@@ -100,7 +100,8 @@ Income	7
   - $50,000 - $74,999
   - $75,000 or greater
   - Data not reported
-Race/Ethnicity	8		
+
+5. Race/Ethnicity	(8 levels)
   - 2 or more races
   - American Indian/Alaska Native			
   - Asian			
@@ -109,7 +110,8 @@ Race/Ethnicity	8
   - Non-Hispanic Black			
   - Non-Hispanic White			
   - Other
-Total	1	
+
+6. Total (1 levels)
   - Total
 
 ## Data cleaning
@@ -145,7 +147,7 @@ df$StratificationID1 <- as.factor(df$StratificationID1)
 
 Next, walk through each column.
 
-### YearStart vs YearEnd
+#### YearStart vs YearEnd
 
 Group by YearStart and YearEnd, if they are same, we can keep one and remove the other.
 
@@ -160,7 +162,7 @@ And we also found each year contains different size of data. 2015 > 2013 > 2011 
 df$YearEnd <- NULL
 ```
 
-### Datasource
+#### Datasource
 
 Datasource has only one level. We can remove it as well.
 
@@ -168,7 +170,7 @@ Datasource has only one level. We can remove it as well.
 df$Datasource <- NULL
 ```
 
-### Class vs Topic, ClassID vs TopicID
+#### Class vs Topic, ClassID vs TopicID
 
 Class and Topic have 3 levels. Let's take a look whether those 3 level are same or not.
 
@@ -192,7 +194,7 @@ df$ClassID <- NULL
 df$TopicID <- NULL
 ```
 
-### Question vs QuestionID
+#### Question vs QuestionID
 
 Again, QuestionID is a value tranfromation of Question column. We keep Question and remove Question.
 
@@ -216,10 +218,9 @@ According to each question, it is obviously Q036 and Q037 are relative to weight
 Q018 and Q019 are relative to healthy diet, fruit and vegetable consuming.
 Q043, Q044, Q045, Q046 and Q047 are relative to physical activity.
 
-For this final project, we will foucus on obesity rate - Q036 and Q037.
+For this final project, we will foucus on obesity rate, which is relative to questions Q036 and Q037.
 
-In our 
-### Data_Value_Unit vs Data_Value_Type vs DataValueTypeID
+#### Data_Value_Unit vs Data_Value_Type vs DataValueTypeID
 
 Since Data_Value_Unit is all NA. And Data_Value_Type and DataValueTypeID are all "VALUE". We can remove them.
 
@@ -229,7 +230,7 @@ df$Data_Value_Type <- NULL
 df$DataValueTypeID <- NULL
 ```
 
-### Data_Value vs Data_Value_Alt
+#### Data_Value vs Data_Value_Alt
 
 Based on first glance, there 2 columns should be identical. Let's use group by to confirm.
 
@@ -243,7 +244,7 @@ After group by, total rows is 53,392, which is same as original dataset. So that
 df$Data_Value_Alt <- NULL
 ```
 
-### Data_Value vs Low_Confidence_Limit vs High_Confidence_Limit
+#### Data_Value vs Low_Confidence_Limit vs High_Confidence_Limit
 
 High_Confidence_Limit and Low_Confidence_Limit. These two columns are not very clear what is actually representing. 
 Based the on column name, it looks like the min and max value of the Data_Value in each group. 
@@ -254,7 +255,7 @@ df$Low_Confidence_Limit <- NULL;
 df$High_Confidence_Limit <- NULL;
 ```
 
-### Data_Value_Footnote_Symbol vs Data_Value_Footnote
+#### Data_Value_Footnote_Symbol vs Data_Value_Footnote
 
 According to the name, these 2 columns are the same. when "Data_Value_Footnote_Symbol = ~" is equal "Data_Value_Footnote_Symbol = Data not available because sample size is insufficient."
 Let's filter out when Data_Value_Footnote_Symbol is ~.
@@ -276,7 +277,7 @@ df$Data_Value_Footnote_Symbol <- NULL
 df$Data_Value_Footnote <- NULL
 ```
 
-### Total, Age(years), Education, Gender, Income and Race/Ethnicity vs StratificationCategory1 and Stratification1
+#### Total, Age(years), Education, Gender, Income and Race/Ethnicity vs StratificationCategory1 and Stratification1
 
 Let's take a look the relationship between these columns.
 
@@ -308,7 +309,7 @@ df %>% group_by(StratificationCategory1) %>% summarise(CategoryDistinctValue = n
 We can see there are 6 categories. And each category might contain more than value.
 For example, in "Age(years)" category, it has 6 different values.
 
-### StratificationCategoryId1 vs StratificationCategoryId1
+#### StratificationCategoryId1 vs StratificationCategoryId1
 
 StratificationCategoryId1 vs StratificationCategoryId1 are the transform value for StratificationCategory1 vs StratificationCategory1. 
 So that, we can remove them.
@@ -318,7 +319,7 @@ df$StratificationCategoryId1 <- NULL
 df$StratificationID1 <- NULL
 ```
 
-### LocationID vs LocationDesc vs LocationAbbr vs GeoLocation 
+#### LocationID vs LocationDesc vs LocationAbbr vs GeoLocation 
 
 Based on columns' name, they should represent the same thing. Let's group by them and see whether we can remove the redundant columns or not.
 
@@ -340,7 +341,7 @@ removeLocation <- c("US","GU","PR","VI");
 df <- df %>% filter(!LocationAbbr %in% removeLocation);
 ```
 
-### Data Cleaning Round 1 - Summary
+#### Data Cleaning Round 1 - Summary
 
 Let's check the dataset again and see what does the dataset looks like after first round cleaning
 
@@ -390,9 +391,15 @@ First of all, let's choose Q036 and Q037 and take a look the relationship for ea
 ####  - Q036 - Percent of adults aged 18 years and older who have obesity. 
 ####  - Q037 - Percent of adults aged 18 years and older who have an overweight classification
 
+Let's create a new dataset and only contains data relative to Q036 and Q037.
+
 ```{r message=FALSE, warning=FALSE}
 q1 <- df %>% filter(QuestionID %in% c("Q036","Q037") );
+```
 
+##### Year vs Obesity Rate
+
+```{r message=FALSE, warning=FALSE}
 q1 %>% ggplot(aes(x=YearStart, y=Data_Value, shape = StratificationCategory1)) + 
   geom_point(aes(colour = StratificationCategory1), size = 1) + 
   geom_smooth(method = lm, se = FALSE) + 
@@ -400,6 +407,8 @@ q1 %>% ggplot(aes(x=YearStart, y=Data_Value, shape = StratificationCategory1)) +
 ```
 
 We still can see a linear pattern between year and data value. It increases each year.
+
+##### Categories vs Obesity Rate
 
 ```{r message=FALSE, warning=FALSE}
 q1 %>% ggplot(aes(x=StratificationCategory1, y=Data_Value, color = Stratification1 ) ) + 
@@ -411,7 +420,7 @@ q1 %>% ggplot(aes(x=StratificationCategory1, y=Data_Value, color = Stratificatio
 
 Different category has different perceatage of obesity. Race/Ethnicity category has wider range than others. Age category has a high percetage of obesity, it is all green starting from 30 in y axis. Let's take look into each category.
 
-##### Category - Age (years)
+##### Category - Age (years) vs Obesity Rate
 
 ```{r message=FALSE, warning=FALSE}
 q1_age <- q1 %>% filter(StratificationCategory1 == "Age (years)");
@@ -432,7 +441,7 @@ q1_age %>% group_by(Stratification1) %>% dplyr::summarize(Mean = mean(Data_Value
 
 It is clear obesity rate increases when age increase. Peek is around 55 - 64. And it drops after.
 
-##### Category - Education
+##### Category - Education vs Obesity Rate
 
 ```{r message=FALSE, warning=FALSE}
 q1_education <- q1 %>% filter(StratificationCategory1 == "Education");
@@ -454,7 +463,7 @@ q1_education %>% group_by(Stratification1) %>% dplyr::summarize(Mean = mean(Data
 
 This graph tell us lower educaiton level(High school graduate & Less than high school) seems has higher obesity rate. According to the mean value, we can say peole has Less than high school education has highest obesity rate.
 
-##### Category - Income
+##### Category - Income vs Obesity Rate
 
 ```{r message=FALSE, warning=FALSE}
 q1_income <- q1 %>% filter(StratificationCategory1 == "Income");
@@ -477,7 +486,7 @@ q1_income %>% group_by(Stratification1) %>% dplyr::summarize(Mean = mean(Data_Va
 Mean value tells us two boundaries case ($75,000+ and $15,000-) has lowest mean obesity rate. 
 However, people has income between $75,000 or greater, which has bigger range than others. And the mean value is increasing year by year.
 
-##### Category - Race/Ethnicity
+##### Category - Race/Ethnicity vs Obesity Rate
 
 ```{r message=FALSE, warning=FALSE}
 q1_race <- q1 %>% filter(StratificationCategory1 == "Race/Ethnicity");
@@ -493,7 +502,7 @@ q1_race %>% ggplot(aes(x=Stratification1, y=Data_Value, color=Stratification1) )
 
 It is very clear Asian people has lowest obesity rate.
 
-##### Category - Gender
+##### Category - Gender vs Obesity Rate
 
 ```{r message=FALSE, warning=FALSE}
 q1_gender <- q1 %>% filter(StratificationCategory1 == "Gender");
@@ -507,7 +516,7 @@ q1_gender %>% ggplot(aes(x=Stratification1, y=Data_Value, color=Stratification1 
 
 For this graph, we only can see male has wider range than femail. And male's mean value is higher than female.
 
-##### For "Percent of adults aged 18 years and older who have obesity" question, categories Gender, Education, Income, Age and Race/Ethnicity, which has significant impact on obesity. For example, people around 55-64, whose is male, who has lower education level and income less than $15,000, they will have higher chances to have a obesity health problem.
+> For "Percent of adults aged 18 years and older who have obesity" question, categories Gender, Education, Income, Age and Race/Ethnicity, which has significant impact on obesity. For example, people around 55-64, whose is male, who has lower education level and income less than $15,000, they will have higher chances to have a obesity health problem.
 
 
 ##### How about the obesity rate vs location(each state)
@@ -567,7 +576,7 @@ plot(1:15, wss, type="b", xlab="Number of Clusters",
 
 In terms of how many clusters we should choose, these graphs could be suggesting anywhere from 3 to 4, depending on how we read them.
 
-Here's one with 3 clusters:
+#### Build a kmean model with 3 clusters:
 
 ```{r message=FALSE, warning=FALSE}
 # K-Means Cluster Analysis
@@ -625,7 +634,7 @@ q1_h_model_df <- as.data.frame(scale(q1_h_model_df))
 q1_h_model_df_dist <- dist(q1_h_model_df, method = 'euclidean')
 ```
 
-##### Build hierarchical model
+#### Build a hierarchical model
 
 ```{r message=FALSE, warning=FALSE}
 hclust_avg <- hclust(q1_h_model_df_dist, method = 'average');
