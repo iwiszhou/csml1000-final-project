@@ -2,7 +2,7 @@
 title: "Clustering CDC Data - Nutrition, Physical Activity, & Obesity using Unsupervised and Supervised Learning"
 output:
   html_document: default
-date:  2019-11-09
+date:  2019-11-15
 bibliography: reference.bib
 ---
 
@@ -57,19 +57,13 @@ comma <- function(x)  format(x, digits = 2, big.mark = ",")
     *  *The data describe 9 different questions and each one has a corresponding precentage which is Data_Value column*
 
       + 1. Percent of adults aged 18 years and older who have an overweight classification
-
       + 2. Percent of adults aged 18 years and older who have obesity
-
       + 3. Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic activity
       + 4. Percent of adults who achieve at least 150 minutes a week of moderate-intensity aerobic physical activity or 75 minutes a week of vigorous-intensity aerobic physical
-      + 5. Percent of adults who achieve at least 300 minutes a week of moderate-intensity aerobic physical activity or 150 minutes a
-week of vigorous-intensity aerobic activity
+      + 5. Percent of adults who achieve at least 300 minutes a week of moderate-intensity aerobic physical activity or 150 minutes a week of vigorous-intensity aerobic activity
       + 6. Percent of adults who engage in muscle-strengthening activities on 2 or more days a week
-
       + 7. Percent of adults who engage in no leisure-time physical activity
-
       + 8. Percent of adults who report consuming fruit less than one time daily
-
       + 9. Percent of adults who report consuming vegetables less than one time daily
 
     * *For each of there questions, there are 6 different categories*
@@ -311,7 +305,7 @@ week of vigorous-intensity aerobic activity
   
   
   
-         + **Apply for two features**
+         * **Apply for two features**
 ```{r ModelBuildingFunctionForTwoFeatures, echo = FALSE}
   # *******************************************************
   # input:
@@ -345,7 +339,7 @@ exploreTwoFeatures(feature1 = Race, feature2 = QuestionID)
 ```
  
 
-         + **generate models**
+         * **generate models**
 
 ```{r generateModel, echo = FALSE}
   set.seed(123)
@@ -355,22 +349,42 @@ exploreTwoFeatures(feature1 = Race, feature2 = QuestionID)
   testSet <- clean_df[-training_indices, ]
   testSetSim <- testSet
   finalModel <- lm( Data_Value ~  Age + Education + Gender + Income + Race + QuestionID + LocationAbbr, data = trainSet)
+  
+  trainModelSet <- trainSet
+  trainModelSet <- trainModelSet %>% add_predictions(finalModel)
+  trainModeldist <- rmse(finalModel, data = trainModelSet)
+  
   testSet <- testSet %>% add_predictions(finalModel)
   dist <- rmse(finalModel, data = testSet)
   
   simplifiedModel <- lm(Data_Value ~ Gender + Race + QuestionID, data = trainSet )
   testSetSim <- testSetSim %>% add_predictions(simplifiedModel) 
   distSim <- rmse(simplifiedModel, data = testSetSim)
-  
-
-
+  # using Age/Education/Income as comparation
+  wrongModel_df <- trainSet
+  wrongModel <- lm(Data_Value ~ Age + Education + Income, data = wrongModel_df )
+  wrongModel_df <- wrongModel_df %>%  add_predictions(wrongModel)
+  distWrong <- rmse(wrongModel_df, data = testSet)
 ```
-    	The general wide range model has Root-Mean-Squared-Error(RMSE) `r dist`, while the simplified model with only considering Gender, Race and QuestionID has RMSE as `r distSim`. There is only `r abs(dist - distSim)` different, which indicate we can use Gender, Race and QuestionID to represent the model with no significant sacrifice of the accuracy of the model generated. 
+    	The general wide range model has Root-Mean-Squared-Error(RMSE) on its training set is `r trainModeldist` which is very close to its test set RMSE: `r dist`, while the simplified model with only considering Gender, Race and QuestionID has RMSE as `r distSim`. There is only `r abs(dist - distSim)` different or `r abs(dist - distSim) / dist` percentage difference, which indicate we can use Gender, Race and QuestionID to represent the model with no significant sacrifice of the accuracy of the model generated. Just curiosity, when we use Age/Education/Income combination, we got the RMSE `r distWrong`, which is `r abs(distWrong - dist)/dist` percentage decrease in model accuracy. 
+
+
+  4. **Model / Code:**  
+  Now we save the model file into disk:
+```{r saveRdaFile, echo = FALSE }
+   save( simplifiedModel, file = "simplifiedSupervisedModel.rda")
+   save( finalModel, file = "SupervisedLearningModel.rda")
+```
+    	
           
-  4.  **summary of findings/recommendation**
+  5.  **summary of findings/recommendation**
   When we look at the residuals, which verifies that we've successfully removed the strong linear pattern.  We can now redo our plots using those residuals instead of Data_Value (our dependent variable). Now we see the relationships: 
   There are strong correlation between Data_Value and Gender, Race and Question;  and there are less correlation between Data_Value and Age, Location and Education. There is no relationships between Data_Value and Year and SampleSize. 
   The probably explanation on this may suggest obesity risk may higher among male, but less possible among female. Also, if you are Asian, then the chance to get Obesity is less. Of course, the way you address your questions about Obesity will lead you to different results. 
+  The supervised research also suggests that some obvious factors such as age, income, education has little effect on obesity. While with getting older, we may still keep the habits, life styles, food preferences. Those personal habits and preferences are most likely not change much with time, social status, educational background. 
+  
+  6. **output**
+  Output has been saved to disk:  `r getwd()` - project.html
   
 
 *References*
