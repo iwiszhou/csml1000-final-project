@@ -1,16 +1,40 @@
 ---
-title: Clustering CDC Data - Nutrition, Physical Activity, & Obesity using Unsupervised
-  Learning
+title: Tackling Obesity — Prioritizing the Risk Factors by Demographic
 output:
   html_document: default
   # pdf_document: default - coloured graphs take way too long to render in PDF form.
 ---
 
-## CSML1000 Final Project, by Group 8
+# CSML1000 Final Project, by Group 8
 Tamer Hanna <tamerh@my.yorku.ca>
 Pete Gray <ptgray@my.yorku.ca>
 Xiaohai Lu <yu271637@my.yorku.ca>
 Haofeng Zhou <zhf85@my.yorku.ca>
+
+
+
+# OVERVIEW
+
+Obesity is a big problem in North American society, and contributes to increased rates of diabetes, heart disease, stroke, depression, suicide, disability, and death. All of these complications reduce quality of life and cause additional burden on the health care system.
+
+Using this dataset, we can identify groups at highest risk based on age, gender, race, education, income, etc. Using unsupervised learning, we can look for unexpected combinations of features that lead to an increased rate of obesity. Using decision trees, we can divine the most critical factors correlated with high rates of obesity. We can do this in general, or within those clusters. Using predictive modeling, we can predict obesity rates within demographics using real, or hypothetically modified values to represent predicted improvements in obesity rates in response to hypothetical lifestyle improvements within demographics. 
+
+Within the data are a wide array of factors known to be associated with increased incidence of obesity. Some of these factors, such as ethnic background, do have predictive value with regard to obesity rates. They are, however, not factors that can be addressed. There are also factors such as eating and exercise, which are very strongly correlated with obesity and can to some small degree be addressed though public awareness campaigns and other marketing-like activities. And there are other factors, such as education and income, which are both correlated and can be addressed, but only in the very long term.
+
+We wish, then, to explore which addressable factors are most significant, for any demographic defined by factors that are more inherent.
+
+
+
+# Business Objectives
+
+For any given demographic, we would like to be able to predict the impact of changing different factors on that segment's obesity rate.
+
+This knowledge would be of value to any organizations with marketing channels into specific demographic groups, who wish to promote the kind lifestyle modifications most likely to reduce obesity rates for that group. Does focusing on eating or exercise improve obesity rates more in poorly educated young men? In well-educated middle-aged women? In senior citizens? How would getting a better education in the first place compare to difficult lifestyle modifications now?
+
+As we explore the data, and look for patterns, and learn how to make predictions based on modifying individual features within any given group, we can find answers to these questions and more. We would then work to communicate those findings to people outside the field of Data Science, who could then harness these discoveries into the optimization of a wide variety of targeted public health initiatives.
+
+
+#### Load Libraries
 
 ```{r message=FALSE, warning=FALSE}
 library(dplyr);
@@ -24,16 +48,6 @@ library(factoextra);
 library(fpc);
 library(flexclust);
 ```
-
-## OVERVIEW
-
-Obesity is a big problem in North American society, and contributes to increased rates of diabetes, heart disease, stroke, depression, suicide, disability, death, and many other serious problems that I'll look up later.
-
-Using this dataset, we can identify groups at highest risk based on age, gender, race, education, income, etc. Using unsupervised learning, we can look for unexpected combinations of features that lead to an increased rate of obesity. Using decision trees, we can divine the most critical factors correlated with high rates of obesity. We can do this in general, or within those clusters.
-
-## Business Objectives
-
-For any given sample, we can determine the impact of changing different factors on a given group's predicted obesity rate.
 
 ## Collect Initial Data
 
@@ -631,15 +645,15 @@ q1_h_model_df <- as.data.frame(scale(q1_h_model_df))
 #### Calculate euclidean distance
 
 ```{r message=FALSE, warning=FALSE}
-q1_h_model_df_dist <- dist(q1_h_model_df, method = 'euclidean')
+#q1_h_model_df_dist <- dist(q1_h_model_df, method = 'euclidean')
 ```
 
 #### Build a hierarchical model
 
 ```{r message=FALSE, warning=FALSE}
-hclust_avg <- hclust(q1_h_model_df_dist, method = 'average');
-plot(hclust_avg);
-abline(h = 3.8, col = 'red')
+#hclust_avg <- hclust(q1_h_model_df_dist, method = 'average');
+#plot(hclust_avg);
+#abline(h = 3.8, col = 'red')
 ```
 
 
@@ -648,21 +662,41 @@ However, we can see there is 2 big clusters just right under around h=3.8, if cu
 In the 1st model, we choose k=3. In this dengrogram, let's cut the tree at 3.8, so that, we will get 4 clusters.
 
 ```{r message=FALSE, warning=FALSE}
-cut_avg <- cutree(hclust_avg, h = 3.8);
-plot(hclust_avg);
-rect.hclust(hclust_avg , k = 4, border = 2:6);
-abline(h = 3.8, col = 'red')
+#cut_avg <- cutree(hclust_avg, h = 3.8);
+#plot(hclust_avg);
+#rect.hclust(hclust_avg , k = 4, border = 2:6);
+#abline(h = 3.8, col = 'red')
 
 ```
 
 However, we can see the 2nd cluster(between green and blue) one, which is too small. It might make sence we should only use k=3 rather than 4.
 
-## Supervised Learning - build a regression/random forse model
-TODO
 
-## Conclusion
-TODO
+# Conclusions
 
-## Next, let's use different dirction to think about this problem and see we can get - Supervised Learing 
+We wrangled this large, complicated, messy dataset into a much more compact entity representing only data we are interested in. Through our exploration of the data, we were able to see the widely-known correlations between a number of factors and obesity rate. These factors include age, gender, education, ethnic background, income, quality of diet, and quantity of exercise.
 
-//TODO Steven Code Goes Here.
+Through unsupervised learning, we discovered that some demographics appear to set themselves apart, both in terms of demographic and behavioural features, and observed obesity rates. We discovered which features were most strongly correlated with obesity overall. This information can be useful both for predicting which groups stand most to benefit from behavioural changes, as well as giving us clues about which behavioural changes are most relevant to those groups.
+
+The knowledge that was discovered in this process, in combination with the problem we set out to solve, contributed to the design and development of the user interface for our Shiny app, which can be found here: https://ptgray.shinyapps.io/project/
+
+# Recommendations
+
+A predictive model, based on supervised learning using obesity rate as the value to predict, is essential to the completion of this project and is the only recommendation we have at this time.
+
+Any such model, with the code that was used to generate it, would be a fabulous addition to this project. Without a doubt.
+
+Ideally, we would train, evaluate, and optimize a model that can predict obesity rate for a given demographic (age, gender, level of education) using known values for Exercise and Eating Scores. We would validate this predicted obesity rate by comparing it to the known value of the obesity rate for that group. We would then predict a selection of hypothetical obesity rates for this demographic using artifical values representing modest (~10%) improvements in a selection of behaviours. This would give us insights into which behaviours, or combination of behaviours, would be of most value in an obesity reduction campaign. Finally, we would compare these theoretical obesity rates with the observed obesity rate for the comparable demographic, but with a higher level of education. From our exploration, there seems to be a good chance that the message "stay in school!" will be of more utility than any tinkering with people's lifestyles after the fact.
+
+.
+
+### CSML1000 York University "Machine Learning in the Business Context". Fall 2019
+
+### Final Project, Group 8
+
+Tamer Hanna <tamerh@my.yorku.ca>
+Pete Gray <ptgray@my.yorku.ca>
+Xiaohai Lu <yu271637@my.yorku.ca>
+Haofeng Zhou <zhf85@my.yorku.ca>
+
+.
