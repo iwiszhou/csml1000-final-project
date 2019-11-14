@@ -138,8 +138,6 @@ server <- function(input, output) {
     session$sendCustomMessage(type = 'testmessage',
                               message = 'Thank you for clicking')
   })
-    
-  # Data Science is a Team Sport.
   
   # We hope you enjoy our thoughtful, interpretable, and aesthetically pleasing user interface.
   
