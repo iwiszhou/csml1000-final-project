@@ -47,6 +47,8 @@ library(clusterSim);
 library(factoextra);
 library(fpc);
 library(flexclust);
+library(caTools);
+library(ggplot2); 
 ```
 
 ## Collect Initial Data
@@ -645,15 +647,16 @@ q1_h_model_df <- as.data.frame(scale(q1_h_model_df))
 #### Calculate euclidean distance
 
 ```{r message=FALSE, warning=FALSE}
-q1_h_model_df_dist <- dist(q1_h_model_df, method = 'euclidean')
+#q1_h_model_df_dist <- dist(q1_h_model_df, method = 'euclidean')
 ```
 
 #### Build a hierarchical model
 
 ```{r message=FALSE, warning=FALSE}
-hclust_avg <- hclust(q1_h_model_df_dist, method = 'average');
-plot(hclust_avg);
-abline(h = 3.8, col = 'red')
+
+#hclust_avg <- hclust(q1_h_model_df_dist, method = 'average');
+#plot(hclust_avg);
+#abline(h = 3.8, col = 'red')
 ```
 
 
@@ -662,12 +665,133 @@ However, we can see there is 2 big clusters just right under around h=3.8, if cu
 In the 1st model, we choose k=3. In this dengrogram, let's cut the tree at 3.8, so that, we will get 4 clusters.
 
 ```{r message=FALSE, warning=FALSE}
-cut_avg <- cutree(hclust_avg, h = 3.8);
-plot(hclust_avg);
-rect.hclust(hclust_avg , k = 4, border = 2:6);
-abline(h = 3.8, col = 'red')
+#cut_avg <- cutree(hclust_avg, h = 3.8);
+#plot(hclust_avg);
+#rect.hclust(hclust_avg , k = 4, border = 2:6);
+#abline(h = 3.8, col = 'red')
 
 ```
+
+
+Supervised learning model to predict Obesity Percentatge in socity.
+
+Lets start using the clean data set and removing the Class question as it has no effect on the model since we are applying the training only for Obesity / Weight Status 
+
+```{r message=FALSE, warning=FALSE}
+df_su <- q1
+
+df_su$Class <- NULL
+df_su$QuestionID <- NULL
+df_su$StratificationCategory1 <- NULL
+data.frame(df_su)
+
+split = sample.split(df_su$Data_Value, SplitRatio = 0.7) 
+trainingset = subset(df_su, split == TRUE) 
+testset = subset(df_su, split == FALSE) 
+
+```
+
+# Fitting Simple Linear Regression to the Training set 
+
+```{r message=FALSE, warning=FALSE}
+
+lm.r= lm(formula = Data_Value ~., 
+                        data = trainingset) 
+coef(lm.r) 
+```
+
+# Predicting the Test set results 
+
+```{r message=FALSE, warning=FALSE}
+
+ypred = predict(lm.r, newdata = testset)  -> df_result
+   
+
+```
+
+# Visualising the Training set results 
+
+```{r message=FALSE, warning=FALSE}
+
+ggplot() + geom_point(aes(x = trainingset$LocationAbbr,  
+                y = trainingset$Data_Value), colour = 'red') +
+geom_line(aes(x = trainingset$LocationAbbr, 
+y = predict(lm.r, newdata = trainingset)), colour = 'blue') +
+          
+ggtitle('Location vs Data_Value (Training set)') +
+xlab('Location') +
+ylab('Data')
+   
+
+```
+
+
+
+
+```{r message=FALSE, warning=FALSE}
+
+ggplot() + geom_point(aes(x = trainingset$Stratification1 ,  
+                y = trainingset$Data_Value), colour = 'red') +
+geom_line(aes(x = trainingset$Stratification1, 
+y = predict(lm.r, newdata = trainingset)), colour = 'blue') +
+          
+ggtitle('Stratification1 vs Data_Value (Training set)') +
+xlab('Stratification1') +
+ylab('Data')
+
+
+
+```
+
+
+
+# Visualising the Test set results 
+
+```{r message=FALSE, warning=FALSE}
+
+  ggplot() + geom_point(aes(x = testset$LocationAbbr,  
+                y = testset$Data_Value), colour = 'red') +
+geom_line(aes(x = testset$LocationAbbr, 
+y = predict(lm.r, newdata = testset)), colour = 'blue') +
+          
+ggtitle('Location vs Data_Value (Test set)') +
+xlab('Location') +
+ylab('Data')
+   
+   
+
+```
+
+Finding the error and root mean square of error 
+
+```{r}
+cbind(Actual=testset$Data_Value,Predicted=df_result)->Final_Data 
+
+as.data.frame(Final_Data)->Final_Data
+
+
+(Final_Data$Actual- Final_Data$Predicted)->error
+
+cbind(Final_Data,error)->Final_Data
+
+rmse1<-sqrt(mean(Final_Data$error^2)) 
+
+rmse1
+
+
+
+```
+
+# Model extraction 
+
+```{r}
+
+
+saveRDS(lm.r, file = "./q2_model_df_su.rda");
+
+```
+
+
 
 However, we can see the 2nd cluster(between green and blue) one, which is too small. It might make sence we should only use k=3 rather than 4.
 
