@@ -695,7 +695,7 @@ df_su <- q1
 df_su$Class <- NULL
 df_su$QuestionID <- NULL
 df_su$StratificationCategory1 <- NULL
-data.frame(df_su)
+#data.frame(df_su)
 
 split = sample.split(df_su$Data_Value, SplitRatio = 0.7) 
 trainingset = subset(df_su, split == TRUE) 
@@ -867,11 +867,8 @@ The knowledge that was discovered in this process, in combination with the probl
 
 A predictive model, based on supervised learning using obesity rate as the value to predict, is essential to the completion of this project and is the only recommendation we have at this time.
 
-Any such model, with the code that was used to generate it, would be a fabulous addition to this project. Without a doubt.
-
 Ideally, we would train, evaluate, and optimize a model that can predict obesity rate for a given demographic (age, gender, level of education) using known values for Exercise and Eating Scores. We would validate this predicted obesity rate by comparing it to the known value of the obesity rate for that group. We would then predict a selection of hypothetical obesity rates for this demographic using artifical values representing modest (~10%) improvements in a selection of behaviours. This would give us insights into which behaviours, or combination of behaviours, would be of most value in an obesity reduction campaign. Finally, we would compare these theoretical obesity rates with the observed obesity rate for the comparable demographic, but with a higher level of education. From our exploration, there seems to be a good chance that the message "stay in school!" will be of more utility than any tinkering with people's lifestyles after the fact.
 
-.
 
 ### CSML1000 York University "Machine Learning in the Business Context". Fall 2019
 
