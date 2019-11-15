@@ -48,7 +48,7 @@ library(factoextra);
 library(fpc);
 library(flexclust);
 library(caTools);
-library(ggplot2); 
+library(randomForest);
 ```
 
 ## Collect Initial Data
@@ -357,6 +357,16 @@ removeLocation <- c("US","GU","PR","VI");
 df <- df %>% filter(!LocationAbbr %in% removeLocation);
 ```
 
+Let's take a look LocationAbbr column
+```{r message=FALSE, warning=FALSE}
+summary(df$LocationAbbr)
+```
+
+However, the filtered values are still there. We need to remove them from factor level.
+```{r message=FALSE, warning=FALSE}
+df[] <- lapply(df, function(x) if(is.factor(x)) factor(x) else x)
+```
+
 #### Data Cleaning Round 1 - Summary
 
 Let's check the dataset again and see what does the dataset looks like after first round cleaning
@@ -647,16 +657,15 @@ q1_h_model_df <- as.data.frame(scale(q1_h_model_df))
 #### Calculate euclidean distance
 
 ```{r message=FALSE, warning=FALSE}
-#q1_h_model_df_dist <- dist(q1_h_model_df, method = 'euclidean')
+q1_h_model_df_dist <- dist(q1_h_model_df, method = 'euclidean')
 ```
 
 #### Build a hierarchical model
 
 ```{r message=FALSE, warning=FALSE}
-
-#hclust_avg <- hclust(q1_h_model_df_dist, method = 'average');
-#plot(hclust_avg);
-#abline(h = 3.8, col = 'red')
+hclust_avg <- hclust(q1_h_model_df_dist, method = 'average');
+plot(hclust_avg);
+abline(h = 3.8, col = 'red')
 ```
 
 
@@ -665,15 +674,18 @@ However, we can see there is 2 big clusters just right under around h=3.8, if cu
 In the 1st model, we choose k=3. In this dengrogram, let's cut the tree at 3.8, so that, we will get 4 clusters.
 
 ```{r message=FALSE, warning=FALSE}
-#cut_avg <- cutree(hclust_avg, h = 3.8);
-#plot(hclust_avg);
-#rect.hclust(hclust_avg , k = 4, border = 2:6);
-#abline(h = 3.8, col = 'red')
-
+cut_avg <- cutree(hclust_avg, h = 3.8);
+plot(hclust_avg);
+rect.hclust(hclust_avg , k = 4, border = 2:6);
+abline(h = 3.8, col = 'red')
 ```
 
 
-Supervised learning model to predict Obesity Percentatge in socity.
+However, we can see the 2nd cluster(between green and blue) one, which is too small. It might make sence we should only use k=3 rather than 4.
+
+## Supervised Learning
+
+### Build Linear Regression Model #1
 
 Lets start using the clean data set and removing the Class question as it has no effect on the model since we are applying the training only for Obesity / Weight Status 
 
@@ -683,7 +695,7 @@ df_su <- q1
 df_su$Class <- NULL
 df_su$QuestionID <- NULL
 df_su$StratificationCategory1 <- NULL
-data.frame(df_su)
+#data.frame(df_su)
 
 split = sample.split(df_su$Data_Value, SplitRatio = 0.7) 
 trainingset = subset(df_su, split == TRUE) 
@@ -691,7 +703,7 @@ testset = subset(df_su, split == FALSE)
 
 ```
 
-# Fitting Simple Linear Regression to the Training set 
+#### Fitting Simple Linear Regression to the Training set 
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -700,7 +712,7 @@ lm.r= lm(formula = Data_Value ~.,
 coef(lm.r) 
 ```
 
-# Predicting the Test set results 
+#### Predicting the Test set results 
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -709,7 +721,7 @@ ypred = predict(lm.r, newdata = testset)  -> df_result
 
 ```
 
-# Visualising the Training set results 
+#### Visualising the Training set results 
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -743,9 +755,7 @@ ylab('Data')
 
 ```
 
-
-
-# Visualising the Test set results 
+#### Visualising the Test set results 
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -782,19 +792,121 @@ rmse1
 
 ```
 
-# Model extraction 
+#### Model extraction 
 
 ```{r}
-
-
 saveRDS(lm.r, file = "./q2_model_df_su.rda");
-
 ```
 
 
+### Build Random Forest Model #2
 
-However, we can see the 2nd cluster(between green and blue) one, which is too small. It might make sence we should only use k=3 rather than 4.
+#### Prepare data
 
+only select YearStart, LocationAbbr, Data_Value, StratificationCategory1 and Stratification1 columns.
+
+```{r message=FALSE, warning=FALSE}
+df_su_model_2 <- q1[,c(1,2,4,7,8)];
+```
+
+#### Split the data into Training dataset and Test dataset
+
+Take 75% of the dataset for training data, 25% for test data 
+
+```{r message=FALSE, warning=FALSE}
+smp_size <- floor(0.75 * nrow(df_su_model_2));
+set.seed(123);
+train_ind <- sample(seq_len(nrow(df_su_model_2)), size = smp_size);
+df_su_model_2_train <- df_su_model_2[train_ind, ];
+df_su_model_2_test <- df_su_model_2[-train_ind, ];
+```
+
+#### Define the equation & create a model
+
+```{r message=FALSE, warning=FALSE}
+df_su_model_2_rf <- randomForest(Data_Value ~., data=df_su_model_2_train, ntree=2000, importance=TRUE)
+```
+
+#### Check randmon forset model performance
+
+```{r message=FALSE, warning=FALSE}
+df_su_model_2_rf
+```
+
+We can see "Mean of squared residuals: 33.56577", which tells us our model accuracy is accuracy 66.44%.
+
+#### Evalutaion
+
+```{r message=FALSE, warning=FALSE}
+result <- data.frame(df_su_model_2_test$Data_Value, predict(df_su_model_2_rf, df_su_model_2_test[,], type="response"))
+```
+
+Let's take a look the predict value vs the actual value
+
+```{r message=FALSE, warning=FALSE}
+head(result,5)
+```
+
+It is not bad. Some records' prediciton is very close. For example, row 1, actural value is 31.8. The prediction value is 30.824.
+
+#### Export Model 
+
+```{r}
+saveRDS(df_su_model_2_rf, file = "./randomforest_model.rda")
+```
+
+Accordint to the graph we have above, we knew this obesity rate has a different behavior compare to each catetory. If we only choose one category to build our model, will it has a better output?
+
+### Build Random Forest Model #3
+
+#### Prepare data
+
+Only select YearStart, LocationAbbr, Data_Value, StratificationCategory1 and Stratification1 columns. And filter out catetory equal to "Income"
+
+```{r message=FALSE, warning=FALSE}
+df_su_model_3 <- q1[,c(1,2,4,7,8)];
+df_su_model_3  <- df_su_model_3 %>% filter(StratificationCategory1 == "Income")
+```
+
+#### Split the data into Training dataset and Test dataset
+
+Take 75% of the dataset for training data, 25% for test data 
+
+```{r message=FALSE, warning=FALSE}
+smp_size <- floor(0.75 * nrow(df_su_model_3));
+set.seed(123);
+train_ind <- sample(seq_len(nrow(df_su_model_3)), size = smp_size);
+df_su_model_3_train <- df_su_model_3[train_ind, ];
+df_su_model_3_test <- df_su_model_3[-train_ind, ];
+```
+
+#### Define the equation & create a model
+
+```{r message=FALSE, warning=FALSE}
+df_su_model_3_rf <- randomForest(Data_Value ~., data=df_su_model_3_train, ntree=2000, importance=TRUE)
+```
+
+#### Check randmon forset model performance
+
+```{r message=FALSE, warning=FALSE}
+df_su_model_3_rf
+```
+
+We can see "Mean of squared residuals: 25.36678", which tells us our model accuracy is accuracy 74.63%. It is better than the previous model.
+
+#### Evalutaion
+
+```{r message=FALSE, warning=FALSE}
+result <- data.frame(df_su_model_3_test$Data_Value, predict(df_su_model_3_rf, df_su_model_3_test[,], type="response"))
+```
+
+Let's take a look the predict value vs the actual value
+
+```{r message=FALSE, warning=FALSE}
+head(result,5)
+```
+
+Let's take a look the 1st row again. Actural value is 35.8. The prediction value is 33.03106. It is much closer than previous model. And this one also improve if we only build the model based on different category, we can get a better model.
 
 # Conclusions
 
@@ -808,11 +920,8 @@ The knowledge that was discovered in this process, in combination with the probl
 
 A predictive model, based on supervised learning using obesity rate as the value to predict, is essential to the completion of this project and is the only recommendation we have at this time.
 
-Any such model, with the code that was used to generate it, would be a fabulous addition to this project. Without a doubt.
-
 Ideally, we would train, evaluate, and optimize a model that can predict obesity rate for a given demographic (age, gender, level of education) using known values for Exercise and Eating Scores. We would validate this predicted obesity rate by comparing it to the known value of the obesity rate for that group. We would then predict a selection of hypothetical obesity rates for this demographic using artifical values representing modest (~10%) improvements in a selection of behaviours. This would give us insights into which behaviours, or combination of behaviours, would be of most value in an obesity reduction campaign. Finally, we would compare these theoretical obesity rates with the observed obesity rate for the comparable demographic, but with a higher level of education. From our exploration, there seems to be a good chance that the message "stay in school!" will be of more utility than any tinkering with people's lifestyles after the fact.
 
-.
 
 ### CSML1000 York University "Machine Learning in the Business Context". Fall 2019
 
