@@ -364,7 +364,7 @@ exploreTwoFeatures(feature1 = Race, feature2 = QuestionID)
   wrongModel_df <- trainSet
   wrongModel <- lm(Data_Value ~ Age + Education + Income, data = wrongModel_df )
   wrongModel_df <- wrongModel_df %>%  add_predictions(wrongModel)
-  distWrong <- rmse(wrongModel_df, data = testSet)
+  distWrong <- rmse(wrongModel, data = wrongModel_df )
 ```
     	The general wide range model has Root-Mean-Squared-Error(RMSE) on its training set is `r trainModeldist` which is very close to its test set RMSE: `r dist`, while the simplified model with only considering Gender, Race and QuestionID has RMSE as `r distSim`. There is only `r abs(dist - distSim)` different or `r abs(dist - distSim) / dist` percentage difference, which indicate we can use Gender, Race and QuestionID to represent the model with no significant sacrifice of the accuracy of the model generated. Just curiosity, when we use Age/Education/Income combination, we got the RMSE `r distWrong`, which is `r abs(distWrong - dist)/dist` percentage decrease in model accuracy. 
 
