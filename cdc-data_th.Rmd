@@ -855,6 +855,59 @@ It is not bad. Some records' prediciton is very close. For example, row 1, actur
 saveRDS(df_su_model_2_rf, file = "./randomforest_model.rda")
 ```
 
+Accordint to the graph we have above, we knew this obesity rate has a different behavior compare to each catetory. If we only choose one category to build our model, will it has a better output?
+
+### Build Random Forest Model #3
+
+#### Prepare data
+
+Only select YearStart, LocationAbbr, Data_Value, StratificationCategory1 and Stratification1 columns. And filter out catetory equal to "Income"
+
+```{r message=FALSE, warning=FALSE}
+df_su_model_3 <- q1[,c(1,2,4,7,8)];
+df_su_model_3  <- df_su_model_3 %>% filter(StratificationCategory1 == "Income")
+```
+
+#### Split the data into Training dataset and Test dataset
+
+Take 75% of the dataset for training data, 25% for test data 
+
+```{r message=FALSE, warning=FALSE}
+smp_size <- floor(0.75 * nrow(df_su_model_3));
+set.seed(123);
+train_ind <- sample(seq_len(nrow(df_su_model_3)), size = smp_size);
+df_su_model_3_train <- df_su_model_3[train_ind, ];
+df_su_model_3_test <- df_su_model_3[-train_ind, ];
+```
+
+#### Define the equation & create a model
+
+```{r message=FALSE, warning=FALSE}
+df_su_model_3_rf <- randomForest(Data_Value ~., data=df_su_model_3_train, ntree=2000, importance=TRUE)
+```
+
+#### Check randmon forset model performance
+
+```{r message=FALSE, warning=FALSE}
+df_su_model_3_rf
+```
+
+We can see "Mean of squared residuals: 25.36678", which tells us our model accuracy is accuracy 74.63%. It is better than the previous model.
+
+#### Evalutaion
+
+```{r message=FALSE, warning=FALSE}
+result <- data.frame(df_su_model_3_test$Data_Value, predict(df_su_model_3_rf, df_su_model_3_test[,], type="response"))
+```
+
+Let's take a look the predict value vs the actual value
+
+```{r message=FALSE, warning=FALSE}
+head(result,5)
+```
+
+Let's take a look the 1st row again. Actural value is 35.8. The prediction value is 33.03106. It is much closer than previous model. And this one also improve if we only build the model based on different category, we can get a better model.
+
 # Conclusions
 
 We wrangled this large, complicated, messy dataset into a much more compact entity representing only data we are interested in. Through our exploration of the data, we were able to see the widely-known correlations between a number of factors and obesity rate. These factors include age, gender, education, ethnic background, income, quality of diet, and quantity of exercise.
